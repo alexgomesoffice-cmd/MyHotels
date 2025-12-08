@@ -1,0 +1,2 @@
+npm install @heroicons/react ->for burger icon
+import { Bars3Icon } from "@heroicons/react/24/solid";
