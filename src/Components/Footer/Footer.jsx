@@ -8,24 +8,24 @@ const Footer = () => {
 
         {/* About Us */}
         <div className="w-full md:w-1/3 px-4">
-          <h3 className="font-semibold text-lg">About Us</h3>
-          <p className="text-gray-600 text-sm mt-2">
+          <h3 className="font-semibold text-lg hover:text-blue-700 cursor-pointer">About Us</h3>
+          <p className="text-gray-400 text-sm mt-2">
             Learn more about our mission and values.
           </p>
         </div>
 
         {/* Terms of Services */}
         <div className="w-full md:w-1/3 px-4">
-          <h3 className="font-semibold text-lg">Terms of Services</h3>
-          <p className="text-gray-600 text-sm mt-2">
+          <h3 className="font-semibold text-lg hover:text-blue-700 cursor-pointer">Terms of Services</h3>
+          <p className="text-gray-400 text-sm mt-2">
             Understand our policies and service guidelines.
           </p>
         </div>
 
         {/* Customer Service Help */}
         <div className="w-full md:w-1/3 px-4">
-          <h3 className="font-semibold text-lg">Customer Service Help</h3>
-          <p className="text-gray-600 text-sm mt-2">
+          <h3 className="font-semibold text-lg hover:text-blue-700 cursor-pointer">Customer Service Help</h3>
+          <p className="text-gray-400 text-sm mt-2">
             Need support? We're here for you 24/7.
           </p>
         </div>
@@ -33,7 +33,7 @@ const Footer = () => {
       </div>
 
       {/* Bottom Text */}
-      <div className="mt-10 text-gray-600 text-sm">
+      <div className="mt-10 text-gray-400 text-sm">
         © {new Date().getFullYear()} MyHotels — All rights reserved.
       </div>
 

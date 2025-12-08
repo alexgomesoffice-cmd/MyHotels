@@ -4,7 +4,6 @@ const HeroSection = () => {
   return (
     <section className="bg-blue-800 text-white py-20 px-4">
       <div className="max-w-6xl mx-auto text-center">
-
         {/* Heading */}
         <h1 className="text-4xl md:text-6xl font-bold mb-4">
           LET'S TRAVEL!
@@ -12,7 +11,7 @@ const HeroSection = () => {
 
         {/* Subtitle */}
         <p className="text-lg md:text-xl text-blue-200 mb-10">
-          Search deals on hotels, rooms, homes and much more...
+          Helping You Find Your Dream Hotel
         </p>
 
         {/* Search Box */}
@@ -42,7 +41,6 @@ const HeroSection = () => {
           </button>
 
         </div>
-
       </div>
     </section>
   );
