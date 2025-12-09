@@ -34,7 +34,7 @@ const Navbar = () => {
           <button className="border border-blue-600 text-blue-600 px-4 py-1 rounded-md hover:bg-blue-50">
             Login
           </button>
-          <button className="bg-blue-600 text-white px-4 py-1 rounded-md hover:bg-blue-700">
+          <button className="bg-blue-600 text-white px-4 py-1 rounded-md hover:bg-blue-700 border border-blue-600">
             Register
           </button>
         </div>
