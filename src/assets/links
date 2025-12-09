@@ -1,3 +1,5 @@
 npm install @heroicons/react ->for burger icon
 import { Bars3Icon } from "@heroicons/react/24/solid";
 
+for hotel cards:
+https://dribbble.com/shots/26239764-Travel-Planning-Mobile-App

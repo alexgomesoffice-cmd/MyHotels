@@ -48,10 +48,10 @@ const Navbar = () => {
 
           </button>
           {profileOpen && (
-            <div className="absolute right-0 mt-2 w-36 bg-white border rounded-md shadow-lg z-50">
+            <div className="absolute right-0 mt-2 w-36 bg-white border-none rounded-md shadow-lg z-50">
               <ul className="flex flex-col text-center">
-                <li className="border-b py-2 hover:bg-gray-100 cursor-pointer">Login</li>
-                <li className="py-2 hover:bg-gray-100 cursor-pointer">Register</li>
+                <li className="border-none py-2 hover:bg-gray-100 cursor-pointer rounded-md">Login</li>
+                <li className="py-2 hover:bg-gray-100 cursor-pointer rounded-md">Register</li>
               </ul>
             </div>
           )}
