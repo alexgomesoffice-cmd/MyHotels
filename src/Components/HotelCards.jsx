@@ -6,7 +6,7 @@ const HotelCards = () => {
     <div>
       <div className="w-96 shadow-sm pl-10 pt-5">
         
-        <figure className="w-full h-96 bg-gray-500 relative rounded-md">
+        <figure className="w-full h-96 bg-gray-300 relative rounded-md">
 
           <div className="absolute bottom-0 left-0 w-full text-white p-3">
             <h2>Card Title</h2>
@@ -15,7 +15,7 @@ const HotelCards = () => {
               are title and actions parts
             </p>
             <div className="flex justify-center align-center">
-              <button className="bg-blue-700 px-1.5 py-1 rounded-md mt-2">Book Now</button>
+              <button className="bg-blue-700 px-4 py-1 rounded-md mt-2">Book Now</button>
             </div>
           </div>
 
