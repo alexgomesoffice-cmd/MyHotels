@@ -1,13 +1,11 @@
-import React from 'react'
-import Button from './UI/Button'
+import React from 'react';
+import Button from './UI/Button';
 
 const HotelCards = () => {
   return (
     <div>
-      <div className="w-96 shadow-sm pl-10 pt-5">
-        
-        <figure className="w-full h-96 bg-gray-300 relative rounded-md">
-
+      <div className="w-96 shadow-none pl-10 pt-5 mb-0"> 
+        <figure className="w-full h-96 bg-gray-300 relative rounded-md border-none">
           <div className="absolute bottom-0 left-0 w-full text-white p-3">
             <h2>Card Title</h2>
             <p>
@@ -18,15 +16,10 @@ const HotelCards = () => {
               <button className="bg-blue-700 px-4 py-1 rounded-md mt-2">Book Now</button>
             </div>
           </div>
-
         </figure>
-
       </div>
     </div>
   );
 };
 
 export default HotelCards;
-
-
-

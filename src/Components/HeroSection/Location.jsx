@@ -1,6 +1,6 @@
 import React from 'react'
 
-const  = () => {
+const Location = () => {
   return (
     <div className="flex items-center gap-2 border border-gray-300 rounded-lg px-4 py-3 flex-1">
         <MapPinIcon className="w-6 h-6 text-gray-500" />
@@ -19,4 +19,4 @@ const  = () => {
   )
 }
 
-export default 
+export default Location
