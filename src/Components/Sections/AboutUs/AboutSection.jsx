@@ -1,5 +1,5 @@
 import React from 'react';
-export default function AboutSection() {
+const AboutSection = () => {
   return (
      <section className="bg-blue-700 text-white py-16 px-6">
       <div className="max-w-4xl mx-auto text-center space-y-6">
@@ -27,3 +27,4 @@ export default function AboutSection() {
   );
 }
 
+export default  AboutSection
