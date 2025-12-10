@@ -1,9 +1,9 @@
 
-import Home from './Pages/Home'
+import CustomerService from './Pages/CustomerService'
 const App = () => {
   return (
-  <div className="w-full h-full absolute">
-      <Home />
+  <div>
+      <CustomerService />
   </div>
     
   )
