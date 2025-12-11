@@ -5,7 +5,7 @@ const Navbar = () => {
   const [profileOpen, setProfileOpen] = useState(false);
 
   return (
-    <header className="bg-white shadow-md px-5 py-4">
+    <header className="bg-white px-5 py-4">
 
       <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
 

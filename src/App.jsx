@@ -1,9 +1,10 @@
 
-import CustomerService from './Pages/CustomerService'
+import Home from './Pages/Home'
+import CustomerService from './Pages/Home'
 const App = () => {
   return (
   <div>
-      <CustomerService />
+      <Home />
   </div>
     
   )
