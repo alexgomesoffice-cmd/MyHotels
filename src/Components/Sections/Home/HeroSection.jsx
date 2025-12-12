@@ -2,7 +2,7 @@ import { MapPinIcon, CalendarDaysIcon, UserIcon } from "@heroicons/react/24/outl
 
 const HeroSection = () => {
   return (
-    <section className="bg-blue-800 text-white py-20 px-4 rounded-3xl border-none">
+    <section className="bg-blue-800 text-white py-20 px-4 border-none">
       <div className="max-w-6xl mx-auto text-center">
 
         {/* Heading */}
