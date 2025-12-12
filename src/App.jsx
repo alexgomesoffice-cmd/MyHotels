@@ -1,3 +1,4 @@
+import Home from './Pages/Home'
 
 import About from './Pages/About'
 const App = () => {
