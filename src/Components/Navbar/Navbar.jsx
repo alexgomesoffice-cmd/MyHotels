@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 
+
 const Navbar = () => {
+
+
   const [profileOpen, setProfileOpen] = useState(false);
 
   return (

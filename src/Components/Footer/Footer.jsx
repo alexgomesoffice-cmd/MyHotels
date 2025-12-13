@@ -1,4 +1,6 @@
 import React from "react";
+import { Link } from "react-router-dom";
+
 
 const Footer = () => {
   return (
@@ -11,10 +13,11 @@ const Footer = () => {
 
         {/* About Us */}
         <div className="w-full md:w-1/3 px-4">
-          <h3 className="font-semibold text-lg 
-              hover:text-blue-700 cursor-pointer inline-block">
-            About Us
-          </h3>
+          <Link to="/about">
+            <h3 className="font-semibold text-lg hover:text-blue-700 cursor-pointer inline-block">
+              About Us
+            </h3>
+          </Link>
           <p className="text-gray-400 text-sm mt-2">
             Learn more about our mission and values.
           </p>
@@ -22,10 +25,11 @@ const Footer = () => {
 
         {/* Terms of Services */}
         <div className="w-full md:w-1/3 px-4">
-          <h3 className="font-semibold text-lg 
-              hover:text-blue-700 cursor-pointer inline-block">
-            Terms of Services
-          </h3>
+          <Link to="/terms">
+            <h3 className="font-semibold text-lg hover:text-blue-700 cursor-pointer inline-block">
+              Terms & Services
+            </h3>
+          </Link>
           <p className="text-gray-400 text-sm mt-2">
             Understand our policies and service guidelines.
           </p>
@@ -33,10 +37,11 @@ const Footer = () => {
 
         {/* Customer Service Help */}
         <div className="w-full md:w-1/3 px-4">
-          <h3 className="font-semibold text-lg 
-              hover:text-blue-700 cursor-pointer inline-block">
-            Customer Service Help
-          </h3>
+          <Link to="/support">
+            <h3 className="font-semibold text-lg hover:text-blue-700 cursor-pointer inline-block">
+              Customer Service Help
+            </h3>
+          </Link>
           <p className="text-gray-400 text-sm mt-2">
             Need support? We're here for you 24/7.
           </p>
@@ -44,7 +49,6 @@ const Footer = () => {
 
       </div>
 
-      {/* Bottom Text */}
       <div className="mt-10 text-gray-400 text-sm">
         © {new Date().getFullYear()} MyHotels — All rights reserved.
       </div>
@@ -52,5 +56,4 @@ const Footer = () => {
     </footer>
   );
 };
-
 export default Footer;
