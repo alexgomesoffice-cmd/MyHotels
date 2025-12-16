@@ -1,49 +1,26 @@
-import Home from './Pages/Home'
-import About from './Pages/About'
-import TermsAndServices from './Pages/TermsAndServices'
-import CustomerService from './Pages/CustomerService'
-import Login from './Pages/LogIn'
-import Register from './Pages/Register'
+import Home from "./Pages/Home";
+import About from "./Pages/About";
+import TermsAndServices from "./Pages/TermsAndServices";
+import CustomerService from "./Pages/CustomerService";
+import Login from "./Pages/LogIn";
+import Register from "./Pages/Register";
+import Hotels from "./Pages/Hotels";
+
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import { createBrowserRouter, RouterProvider } from "react-router-dom"
 
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-const App = () => {
-  const router = createBrowserRouter([
-    {
-      path:"/",
-      element:<Home />
-    },
-    {
-      path:"/about",
-      element:<About />
-    },
-    {
-      path:"/support",
-      element:<CustomerService />
-    },
-    {
-      path:"/terms",
-      element:<TermsAndServices />
-    },
-    { 
-      path: "/login",
-      element: <Login /> 
-    },
-  { 
-    path: "/register",
-    element: <Register /> 
-  },
-  ])
-  return (
-  <div>
-      <RouterProvider router={router} />
-  </div>
-    
-  )
-}
+const router = createBrowserRouter([
+  { path: "/", element: <Home /> },
+  { path: "/about", element: <About /> },
+  { path: "/support", element: <CustomerService /> },
+  { path: "/terms", element: <TermsAndServices /> },
+  { path: "/login", element: <Login /> },
+  { path: "/register", element: <Register /> },
+  { path: "/hotels", element: <Hotels /> },
+]);
 
-export default App
+const App = () => <RouterProvider router={router} />;
 
-
+export default App;

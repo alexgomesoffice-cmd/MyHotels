@@ -34,7 +34,7 @@ const FeatureSection = () => {
     autoplay: false,
     fade: false,
     slidesToShow: 3,
-    slidesToScroll: 3,
+    slidesToScroll: 1,
     centerMode: false,
     initialSlide: 0,
     nextArrow: <NextArrow />,

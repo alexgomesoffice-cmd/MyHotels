@@ -7,8 +7,8 @@ const Register = () => {
       <Navbar />
 
       <section className="flex items-center justify-center h-[calc(100vh-80px)] px-4">
-        <div className="bg-white w-full max-w-md p-8 shadow-lg">
-          <h2 className="text-2xl font-bold text-center bg-blue-700 text-white py-2">
+        <div className="bg-white w-full max-w-md p-8 shadow-lg rounded">
+          <h2 className="text-2xl font-bold text-center bg-blue-700 text-white py-2 rounded">
             Create an Account
           </h2>
           <p className="text-center text-gray-500 mt-4">
