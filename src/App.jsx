@@ -5,11 +5,12 @@ import CustomerService from "./Pages/CustomerService";
 import Login from "./Pages/LogIn";
 import Register from "./Pages/Register";
 import Hotels from "./Pages/Hotels";
+import HotelDescription from "./Pages/HotelDescription";
+
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 const router = createBrowserRouter([
   { path: "/", element: <Home /> },
@@ -19,8 +20,11 @@ const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
   { path: "/hotels", element: <Hotels /> },
+  { path: "/hotelDescription", element: <HotelDescription /> },
 ]);
 
-const App = () => <RouterProvider router={router} />;
+const App = () => {
+  return <RouterProvider router={router} />;
+};
 
 export default App;

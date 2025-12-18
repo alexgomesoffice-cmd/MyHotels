@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import Navbar from "../Components/Navbar/Navbar";
 import Footer from "../Components/Footer/Footer";
 import HotelCardList from "../Components/UI/HotelCardList";
-import hotelsData from "../data/hotelData"; // <-- no curly braces
+import hotelsData from "../data/hotelData";
 
 
 const useQuery = () => {
@@ -14,8 +14,7 @@ const Hotels = () => {
   const query = useQuery();
   const locationParam = query.get("location");
 
-  const filteredHotels = locationParam
-    ? hotelsData.filter((hotel) => hotel.location === locationParam)
+  const filteredHotels = locationParam ? hotelsData.filter((hotel) => hotel.location === locationParam)
     : hotelsData;
 
   return (

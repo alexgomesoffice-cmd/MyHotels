@@ -4,24 +4,30 @@ import Navbar from "../Components/Navbar/Navbar";
 import Footer from "../Components/Footer/Footer";
 import DiscoverSection from "../Components/Sections/Home/DiscoverSection";
 import FeatureSection from "../Components/Sections/Home/FeatureSection";
+import HotelDescription from "./HotelDescription";
+import hotelsData from "../data/hotelData";
+
 
 const Home = () => {
+
+  const selectedHotel = hotelsData[4];
+
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Navbar */}
-      <Navbar />
-
-      {/* Main content grows to fill remaining space */}
-      <main className="flex-grow">
-        <HeroSection />
-        <FeatureSection />
-        <DiscoverSection />
-      </main>
-
-      {/* Footer sticks to bottom */}
-      <Footer />
-    </div>
+     <>
+      <HotelDescription hotel={selectedHotel} />
+    </>
   );
 };
 
 export default Home;
+
+{/* <div className="flex flex-col min-h-screen">
+      <Navbar />
+        <HeroSection />
+        <FeatureSection />
+        <DiscoverSection />
+      <Footer />
+    </div>*/}
+     {/*<>
+      <HotelDescription hotel={selectedHotel} />
+    </>*/}

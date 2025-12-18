@@ -2,27 +2,19 @@ import React from "react";
 
 const HotelCardList = ({ hotel }) => {
   return (
-    <div
-      className="
-        flex flex-col md:flex-row
-        border border-gray-300/60 rounded-xl
-        overflow-hidden
-        shadow-sm hover:shadow-md transition-shadow duration-300
-        mb-6
-      "
-    >
+    <div className="flex flex-col md:flex-row border border-gray-300/60 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 mb-6">
+      
       {/* Hotel Image */}
-      <div className="w-full md:w-48 h-40 md:h-36 flex items-center justify-center p-4">
+      <div className="w-full md:w-48 h-48 md:h-auto">
         <img
           src={hotel.image}
           alt={hotel.name}
-          className="max-w-full max-h-full object-cover rounded-lg"
+          className="w-full h-full object-cover"
         />
       </div>
 
-      {/* Hotel Info + Price */}
+      {/* Hotel Info */}
       <div className="flex flex-col md:flex-row justify-between flex-1 p-4">
-        {/* Hotel Info */}
         <div className="flex-1">
           <h2 className="text-lg font-bold">{hotel.name}</h2>
           <p className="text-gray-500 text-sm">{hotel.location}</p>
@@ -38,6 +30,7 @@ const HotelCardList = ({ hotel }) => {
             Book Now
           </button>
         </div>
+
       </div>
     </div>
   );
