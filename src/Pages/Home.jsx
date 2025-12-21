@@ -4,11 +4,33 @@ import Navbar from "../Components/Navbar/Navbar";
 import Footer from "../Components/Footer/Footer";
 import DiscoverSection from "../Components/Sections/Home/DiscoverSection";
 import FeatureSection from "../Components/Sections/Home/FeatureSection";
-import HotelDescription from "./HotelDescription";
-import hotelsData from "../data/hotelData";
-
 
 const Home = () => {
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      <HeroSection />
+      <FeatureSection />
+      <DiscoverSection />
+      <Footer />
+    </div>
+  );
+};
+
+export default Home;
+
+{/*For Normal UI
+   <div className="flex flex-col min-h-screen">
+      <Navbar />
+        <HeroSection />
+        <FeatureSection />
+        <DiscoverSection />
+      <Footer />
+    </div>*/}
+    
+
+    {/* For Description
+      const Home = () => {
 
   const selectedHotel = hotelsData[4];
 
@@ -20,14 +42,4 @@ const Home = () => {
 };
 
 export default Home;
-
-{/* <div className="flex flex-col min-h-screen">
-      <Navbar />
-        <HeroSection />
-        <FeatureSection />
-        <DiscoverSection />
-      <Footer />
-    </div>*/}
-     {/*<>
-      <HotelDescription hotel={selectedHotel} />
-    </>*/}
+    */}

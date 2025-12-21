@@ -1,31 +1,125 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+// Components/Navbar/Navbar.jsx
+import React, { useState, useRef, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import hotelsData from "../../data/hotelData";
 
 const Navbar = () => {
   const [profileOpen, setProfileOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+
+  const navigate = useNavigate();
+  const searchRef = useRef(null);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setSuggestionsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Handle input changes
+  const handleChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    if (value.length > 0) {
+      const filtered = hotelsData.filter((hotel) =>
+        hotel.name.toLowerCase().includes(value.toLowerCase())
+      );
+      setSuggestions(filtered.slice(0, 5)); // show max 5 suggestions
+      setSuggestionsOpen(true);
+    } else {
+      setSuggestions([]);
+      setSuggestionsOpen(false);
+    }
+  };
+
+  // Handle selection from suggestions
+  const handleSelect = (hotel) => {
+    navigate(`/hotels/${hotel.id}`);
+    setSearchTerm("");
+    setSuggestions([]);
+    setSuggestionsOpen(false);
+  };
+
+  // Handle pressing Enter
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      if (suggestions.length > 0) {
+        handleSelect(suggestions[0]);
+      } else if (searchTerm.trim() !== "") {
+        navigate(`/search?q=${searchTerm}`);
+        setSearchTerm("");
+        setSuggestions([]);
+        setSuggestionsOpen(false);
+      }
+    }
+  };
+
+  // Handle search button click
+  const handleSearchClick = () => {
+    if (searchTerm.trim() !== "") {
+      navigate(`/search?q=${searchTerm}`);
+      setSearchTerm("");
+      setSuggestions([]);
+      setSuggestionsOpen(false);
+    }
+  };
 
   return (
-    <header className="bg-white px-5 py-4">
+    <header className="bg-white px-5 py-4 shadow-sm">
       <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
 
         {/* Logo */}
-        <Link to="/" className="font-bold text-xl whitespace-nowrap flex gap-1">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+        <Link to="/" className="font-bold text-xl whitespace-nowrap flex gap-1 items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
             <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" />
           </svg>
           MyHotels
         </Link>
 
-        {/* Search */}
-        <div className="flex flex-1 max-w-xl items-center gap-2 min-w-0">
+        {/* Search Box + Button */}
+        <div ref={searchRef} className="flex-1 max-w-xl relative flex gap-2">
           <input
             type="text"
+            value={searchTerm}
+            onChange={handleChange}
+            onKeyDown={handleKeyPress}
             placeholder="Search hotels..."
-            className="border border-gray-300 rounded-md px-3 py-2 w-full"
+            className="border border-gray-300 rounded-md px-3 py-2 w-full focus:ring-1 focus:ring-blue-400 focus:outline-none"
           />
-          <button className="bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700">
+          <button
+            onClick={handleSearchClick}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 whitespace-nowrap"
+          >
             Search
           </button>
+
+          {/* Suggestions Dropdown */}
+          {suggestionsOpen && suggestions.length > 0 && (
+            <ul className="absolute z-50 top-full mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+              {suggestions.map((hotel) => (
+                <li
+                  key={hotel.id}
+                  onClick={() => handleSelect(hotel)}
+                  className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                >
+                  <img
+                    src={hotel.image}
+                    alt={hotel.name}
+                    className="w-10 h-10 object-cover rounded-md shrink-0"
+                  />
+                  <span className="text-gray-800 truncate">{hotel.name}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         {/* Desktop Login/Register */}
@@ -46,7 +140,7 @@ const Navbar = () => {
         {/* Mobile Profile Menu */}
         <div className="sm:hidden relative">
           <button onClick={() => setProfileOpen(!profileOpen)} aria-label="Profile menu">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
               <path fillRule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0a4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0" clipRule="evenodd" />
             </svg>
           </button>
