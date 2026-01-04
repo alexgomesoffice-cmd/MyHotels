@@ -1,4 +1,3 @@
-// src/Pages/SearchResults.jsx
 import React from "react";
 import { useLocation } from "react-router-dom";
 import HotelCardList from "../Components/UI/HotelCardList";

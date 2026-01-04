@@ -1,20 +1,33 @@
-import Home from "./Pages/Home";
-import About from "./Pages/About";
-import TermsAndServices from "./Pages/TermsAndServices";
-import CustomerService from "./Pages/CustomerService";
-import Login from "./Pages/LogIn";
-import Register from "./Pages/Register";
-import Hotels from "./Pages/Hotels";
-import HotelDescription from "./Pages/HotelDescription";
-import Layout from "./Layout";
-import SearchResults from "./Pages/SearchResults";
-
+import React from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
+// User Pages
+import Home from "./Pages/Home";
+import About from "./Pages/About";
+import TermsAndServices from "./Pages/TermsAndServices";
+import CustomerService from "./Pages/CustomerService";
+import Login from "./Pages/Login";
+import Register from "./Pages/Register";
+import Hotels from "./Pages/Hotels";
+import HotelDescription from "./Pages/HotelDescription";
+import SearchResults from "./Pages/SearchResults";
+
+// Layout for user pages
+import Layout from "./Layout";
+
+// Admin Pages
+import AdminLayout from "./admin/adminComponents/AdminLayout";
+import Dashboard from "./admin/adminPages/Dashboard";
+import Users from "./admin/adminPages/UserList";
+import AdminHotels from "./admin/adminPages/HotelList";
+import PendingHotels from "./admin/adminPages/PendingHotels";
+import Security from "./admin/adminPages/Security";
+
 const router = createBrowserRouter([
+  // User Routes
   {
     path: "/",
     element: <Layout />,
@@ -27,9 +40,23 @@ const router = createBrowserRouter([
       { path: "register", element: <Register /> },
       { path: "hotels", element: <Hotels /> },
       { path: "hotels/:id", element: <HotelDescription /> },
-      { path:"/search", element :<SearchResults /> }
+      { path: "search", element: <SearchResults /> },
     ],
   },
+
+  // Admin Routes
+  {
+  path: "/admin",
+  element: <AdminLayout />,
+  children: [
+    { index: true, element: <Dashboard /> },
+    { path: "users", element: <Users /> },
+    { path: "hotels", element: <AdminHotels /> },
+    { path: "pending-hotels", element: <PendingHotels /> },
+    { path: "security", element: <Security /> },
+  ],
+}
+,
 ]);
 
 const App = () => {

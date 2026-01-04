@@ -48,20 +48,6 @@ const Navbar = () => {
     setSuggestionsOpen(false);
   };
 
-  // Handle pressing Enter
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      if (suggestions.length > 0) {
-        handleSelect(suggestions[0]);
-      } else if (searchTerm.trim() !== "") {
-        navigate(`/search?q=${searchTerm}`);
-        setSearchTerm("");
-        setSuggestions([]);
-        setSuggestionsOpen(false);
-      }
-    }
-  };
-
   // Handle search button click
   const handleSearchClick = () => {
     if (searchTerm.trim() !== "") {
@@ -90,7 +76,7 @@ const Navbar = () => {
             type="text"
             value={searchTerm}
             onChange={handleChange}
-            onKeyDown={handleKeyPress}
+
             placeholder="Search hotels..."
             className="border border-gray-300 rounded-md px-3 py-2 w-full focus:ring-1 focus:ring-blue-400 focus:outline-none"
           />
