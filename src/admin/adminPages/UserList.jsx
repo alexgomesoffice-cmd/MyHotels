@@ -1,5 +1,5 @@
 import React from "react";
-import usersData from "../../data/usersData.jsx"; // make sure the path is correct
+import usersData from "../../data/usersData.jsx";
 
 const UserList = () => {
   return (

@@ -1,5 +1,5 @@
 import React from "react";
-import hotelsData from "../../data/hotelData.jsx"; // make sure the path is correct
+import hotelsData from "../../data/hotelData.jsx";
 
 const HotelList = () => {
   return (

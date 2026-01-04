@@ -1,4 +1,3 @@
-// src/admin/adminPages/PendingHotels.jsx
 import React from "react";
 
 const PendingHotels = () => {
