@@ -9,7 +9,6 @@ import {
 
 
 //FETCH ALL APPROVED HOTELS
-
 export const fetchHotels = async (req, res) => {
   try {
     const hotels = await getAllApprovedHotels();
@@ -37,7 +36,6 @@ export const fetchHotelById = async (req, res) => {
 
 
 //ADD HOTEL (HOTEL MANAGER)
-
 export const addHotel = async (req, res) => {
   console.log("REQUEST BODY:", req.body);
 
@@ -101,7 +99,6 @@ export const adminApproveHotel = async (req, res) => {
 
 
 // ADMIN > VIEW PENDING HOTELS
-
 export const fetchPendingHotels = async (req, res) => {
   try {
     const hotels = await getPendingHotels();
@@ -116,7 +113,6 @@ export const fetchPendingHotels = async (req, res) => {
 };
 
 // HOTEL MANAGER > VIEW OWN HOTELS
-
 export const fetchMyHotels = async (req, res) => {
   try {
     const { user_id } = req.params;

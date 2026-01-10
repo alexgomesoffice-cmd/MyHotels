@@ -125,9 +125,7 @@ export async function getBookingsByHotelManager(manager_id) {
   return rows;
 }
 
-
 //ADMIN > VIEW ALL BOOKINGS
-
 export async function getAllBookings() {
   const [rows] = await pool.query(
     `
@@ -152,3 +150,30 @@ export async function getAllBookings() {
 
   return rows;
 }
+
+
+//CHECK ROOM AVAILABILITY
+export const isRoomAvailable = async ({
+  hotel_room_details_id,
+  checkin_date,
+  checkout_date,
+}) => {
+  const [rows] = await pool.query(
+    `
+    SELECT COUNT(*) AS conflictCount
+    FROM BOOKING b
+    JOIN HOTEL_ROOM_BOOKING hrb
+      ON b.booking_id = hrb.booking_id
+    WHERE hrb.hotel_room_details_id = ?
+      AND b.status = 'CONFIRMED'
+      AND NOT (
+        b.checkout_date <= ?
+        OR b.checkin_date >= ?
+      )
+    `,
+    [hotel_room_details_id, checkin_date, checkout_date]
+  );
+
+  return rows[0].conflictCount === 0;
+};
+

@@ -4,6 +4,7 @@ import {
   getBookingsByUser,
   getBookingsByHotelManager,
   getAllBookings,
+  isRoomAvailable,
 } from "../models/booking.model.js";
 
 //USER > CREATE BOOKING
@@ -31,6 +32,19 @@ export const addBooking = async (req, res) => {
       });
     }
 
+    // CHECK ROOM AVAILABILITY ✅ FIXED CALL
+    const available = await isRoomAvailable(
+      hotel_room_details_id,
+      checkin_date,
+      checkout_date
+    );
+
+    if (!available) {
+      return res.status(409).json({
+        message: "Room is not available for selected dates",
+      });
+    }
+
     const bookingId = await createBooking({
       user_details_id,
       hotel_room_details_id,
@@ -54,7 +68,6 @@ export const addBooking = async (req, res) => {
 };
 
 //USER > CANCEL OWN BOOKING
-
 export const userCancelBooking = async (req, res) => {
   try {
     const { booking_id } = req.params;
@@ -65,7 +78,6 @@ export const userCancelBooking = async (req, res) => {
       });
     }
 
-    //FIXED LINE
     const cancelled = await cancelBooking({ booking_id });
 
     if (!cancelled) {
@@ -86,7 +98,6 @@ export const userCancelBooking = async (req, res) => {
   }
 };
 
-
 //USER > VIEW OWN BOOKINGS
 export const fetchMyBookings = async (req, res) => {
   try {
@@ -103,9 +114,9 @@ export const fetchMyBookings = async (req, res) => {
     });
   }
 };
-   //HOTEL MANAGER > VIEW
-  // BOOKINGS FOR OWN HOTELS
 
+//HOTEL MANAGER > VIEW
+// BOOKINGS FOR OWN HOTELS
 export const fetchHotelBookings = async (req, res) => {
   try {
     const { manager_id } = req.params;
@@ -122,9 +133,7 @@ export const fetchHotelBookings = async (req, res) => {
   }
 };
 
-
 //ADMIN > VIEW ALL BOOKINGS
-
 export const fetchAllBookings = async (req, res) => {
   try {
     const bookings = await getAllBookings();
@@ -133,6 +142,45 @@ export const fetchAllBookings = async (req, res) => {
     console.error("FETCH ALL BOOKINGS ERROR:", error);
     res.status(500).json({
       message: "Failed to fetch all bookings",
+      error: error.message,
+    });
+  }
+};
+
+//USER > CHECK ROOM AVAILABILITY
+export const checkRoomAvailability = async (req, res) => {
+  try {
+    const {
+      hotel_room_details_id,
+      checkin_date,
+      checkout_date,
+    } = req.body;
+
+    if (!hotel_room_details_id || !checkin_date || !checkout_date) {
+      return res.status(400).json({
+        message:
+          "hotel_room_details_id, checkin_date and checkout_date are required",
+      });
+    }
+
+    const available = await isRoomAvailable(
+      hotel_room_details_id,
+      checkin_date,
+      checkout_date
+    );
+
+    if (!available) {
+      return res.json({
+        available: false,
+        message: "Room is already booked for selected dates",
+      });
+    }
+
+    res.json({ available: true });
+  } catch (error) {
+    console.error("CHECK AVAILABILITY ERROR:", error);
+    res.status(500).json({
+      message: "Failed to check availability",
       error: error.message,
     });
   }

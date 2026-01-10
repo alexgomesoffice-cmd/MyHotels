@@ -1,8 +1,6 @@
 import { pool } from "../db.js";
 
-/* =========================
-   HOTEL MANAGER → ADD HOTEL
-========================= */
+//HOTEL MANAGER > ADD HOTEL
 export async function createHotel({
   name,
   address,
@@ -21,9 +19,7 @@ export async function createHotel({
   return result.insertId;
 }
 
-/* =========================
-   PUBLIC → FETCH APPROVED HOTELS
-========================= */
+ //PUBLIC > FETCH APPROVED HOTELS
 export async function getAllApprovedHotels() {
   const [rows] = await pool.query(`
     SELECT 
@@ -39,9 +35,8 @@ export async function getAllApprovedHotels() {
   return rows;
 }
 
-/* =========================
-   FETCH SINGLE HOTEL
-========================= */
+
+//FETCH SINGLE HOTEL
 export async function getHotelById(id) {
   const [rows] = await pool.query(
     `
@@ -61,9 +56,7 @@ export async function getHotelById(id) {
   return rows[0];
 }
 
-/* =========================
-   ADMIN → APPROVE / REJECT HOTEL
-========================= */
+// ADMIN > APPROVE / REJECT HOTEL
 export async function approveHotel({
   hotel_id,
   approval_status,
@@ -82,7 +75,6 @@ export async function approveHotel({
 
   return result.affectedRows;
 }
-
 // Admin: fetch all pending hotels
 export async function getPendingHotels() {
   const [rows] = await pool.query(`

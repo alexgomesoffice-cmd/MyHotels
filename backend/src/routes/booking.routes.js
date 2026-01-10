@@ -5,12 +5,14 @@ import {
   fetchMyBookings,
   fetchHotelBookings,
   fetchAllBookings,
+  checkRoomAvailability,
 } from "../controllers/booking.controller.js";
 
 const router = Router();
 
 
    //USER > CREATE BOOKING
+router.post("/check-availability", checkRoomAvailability);
 router.post("/", addBooking);
 
 
