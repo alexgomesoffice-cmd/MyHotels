@@ -1,4 +1,4 @@
-const { pool } = require("./db");
+import { pool } from "./db.js";
 
 async function createTables() {
   const connection = await pool.getConnection();
@@ -17,8 +17,8 @@ async function createTables() {
     `);
 
     await connection.query(`
-      INSERT IGNORE INTO ROLE (name) VALUES
-      ('Admin'), ('User'), ('Hotel_Manager')
+      INSERT IGNORE INTO ROLE (name)
+      VALUES ('Admin'), ('User'), ('Hotel_Manager')
     `);
 
     // ---------------- USER ----------------
@@ -32,7 +32,7 @@ async function createTables() {
         role_id INT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        CONSTRAINT fk_user_role FOREIGN KEY (role_id) REFERENCES ROLE(role_id)
+        FOREIGN KEY (role_id) REFERENCES ROLE(role_id)
       )
     `);
 
@@ -46,7 +46,7 @@ async function createTables() {
         address VARCHAR(255),
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        CONSTRAINT fk_user_details FOREIGN KEY (user_id) REFERENCES USER(user_id)
+        FOREIGN KEY (user_id) REFERENCES USER(user_id) ON DELETE CASCADE
       )
     `);
 
@@ -54,15 +54,13 @@ async function createTables() {
     await connection.query(`
       CREATE TABLE IF NOT EXISTS HOTEL_TYPE (
         hotel_type_id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(100) NOT NULL UNIQUE,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        name VARCHAR(100) NOT NULL UNIQUE
       )
     `);
 
     await connection.query(`
-      INSERT IGNORE INTO HOTEL_TYPE (name) VALUES
-      ('5 Star'), ('Resort'), ('Motel'), ('Boutique')
+      INSERT IGNORE INTO HOTEL_TYPE (name)
+      VALUES ('5 Star'), ('Resort'), ('Motel'), ('Boutique')
     `);
 
     // ---------------- HOTEL ----------------
@@ -77,9 +75,9 @@ async function createTables() {
         approved_by_admin_id INT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        CONSTRAINT fk_hotel_type FOREIGN KEY (hotel_type_id) REFERENCES HOTEL_TYPE(hotel_type_id),
-        CONSTRAINT fk_hotel_creator FOREIGN KEY (created_by_user_id) REFERENCES USER(user_id),
-        CONSTRAINT fk_hotel_approver FOREIGN KEY (approved_by_admin_id) REFERENCES USER(user_id)
+        FOREIGN KEY (hotel_type_id) REFERENCES HOTEL_TYPE(hotel_type_id),
+        FOREIGN KEY (created_by_user_id) REFERENCES USER(user_id),
+        FOREIGN KEY (approved_by_admin_id) REFERENCES USER(user_id)
       )
     `);
 
@@ -87,15 +85,13 @@ async function createTables() {
     await connection.query(`
       CREATE TABLE IF NOT EXISTS HOTEL_ROOM_TYPE (
         hotel_room_type_id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(100) NOT NULL UNIQUE,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        name VARCHAR(100) NOT NULL UNIQUE
       )
     `);
 
     await connection.query(`
-      INSERT IGNORE INTO HOTEL_ROOM_TYPE (name) VALUES
-      ('Single'), ('Double'), ('Suite')
+      INSERT IGNORE INTO HOTEL_ROOM_TYPE (name)
+      VALUES ('Single'), ('Double'), ('Suite')
     `);
 
     // ---------------- HOTEL_ROOM_DETAILS ----------------
@@ -111,10 +107,10 @@ async function createTables() {
         approved_by_admin_id INT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        CONSTRAINT fk_room_hotel FOREIGN KEY (hotel_id) REFERENCES HOTEL(hotel_id),
-        CONSTRAINT fk_room_type FOREIGN KEY (hotel_room_type_id) REFERENCES HOTEL_ROOM_TYPE(hotel_room_type_id),
-        CONSTRAINT fk_room_creator FOREIGN KEY (created_by_user_id) REFERENCES USER(user_id),
-        CONSTRAINT fk_room_approver FOREIGN KEY (approved_by_admin_id) REFERENCES USER(user_id)
+        FOREIGN KEY (hotel_id) REFERENCES HOTEL(hotel_id),
+        FOREIGN KEY (hotel_room_type_id) REFERENCES HOTEL_ROOM_TYPE(hotel_room_type_id),
+        FOREIGN KEY (created_by_user_id) REFERENCES USER(user_id),
+        FOREIGN KEY (approved_by_admin_id) REFERENCES USER(user_id)
       )
     `);
 
@@ -127,9 +123,12 @@ async function createTables() {
         checkout_date DATE NOT NULL,
         for_persons INT NOT NULL,
         total_price DECIMAL(10,2) NOT NULL,
+        status ENUM('CONFIRMED','CANCELLED') DEFAULT 'CONFIRMED',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        CONSTRAINT fk_booking_user_details FOREIGN KEY (user_details_id) REFERENCES USER_DETAILS(user_details_id)
+        FOREIGN KEY (user_details_id)
+          REFERENCES USER_DETAILS(user_details_id)
+          ON DELETE CASCADE
       )
     `);
 
@@ -141,30 +140,18 @@ async function createTables() {
         hotel_room_details_id INT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        CONSTRAINT fk_hrb_booking FOREIGN KEY (booking_id) REFERENCES BOOKING(booking_id),
-        CONSTRAINT fk_hrb_room FOREIGN KEY (hotel_room_details_id) REFERENCES HOTEL_ROOM_DETAILS(hotel_room_details_id)
-      )
-    `);
-
-    // ---------------- CHECKOUT ----------------
-    await connection.query(`
-      CREATE TABLE IF NOT EXISTS CHECKOUT (
-        checkout_id INT AUTO_INCREMENT PRIMARY KEY,
-        booking_id INT NOT NULL,
-        checkout_date DATETIME NOT NULL,
-        total_amount DECIMAL(10,2) NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        CONSTRAINT fk_checkout_booking FOREIGN KEY (booking_id) REFERENCES BOOKING(booking_id)
+        FOREIGN KEY (booking_id) REFERENCES BOOKING(booking_id) ON DELETE CASCADE,
+        FOREIGN KEY (hotel_room_details_id)
+          REFERENCES HOTEL_ROOM_DETAILS(hotel_room_details_id)
       )
     `);
 
     console.log("All tables created successfully!");
   } catch (err) {
-    console.log("Error creating tables:", err);
+    console.error("Error creating tables:", err);
   } finally {
     connection.release();
   }
 }
 
-module.exports = createTables;
+export default createTables;

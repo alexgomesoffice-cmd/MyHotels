@@ -18,28 +18,3 @@ const Home = () => {
 };
 
 export default Home;
-
-{/*For Normal UI
-   <div className="flex flex-col min-h-screen">
-      <Navbar />
-        <HeroSection />
-        <FeatureSection />
-        <DiscoverSection />
-      <Footer />
-    </div>*/}
-    
-
-    {/* For Description
-      const Home = () => {
-
-  const selectedHotel = hotelsData[4];
-
-  return (
-     <>
-      <HotelDescription hotel={selectedHotel} />
-    </>
-  );
-};
-
-export default Home;
-    */}

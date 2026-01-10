@@ -1,30 +1,46 @@
-const express = require("express");
-const cors = require("cors");
-require("dotenv").config();
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
 
-const { initDB } = require("./db");
-const createTables = require("./setupTables");
+import { initDB } from "./db.js";
+import createTables from "./setupTables.js";
+import  hotelRoutes from "./routes/hotel.routes.js";
+import roomRoutes from "./routes/room.routes.js";
+import bookingRoutes from "./routes/booking.routes.js";
+
+dotenv.config();
 
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
-// Test route for Postman
+// Test route
 app.get("/api/test", (req, res) => {
   res.json({ message: "Server is running!" });
 });
 
+// Routes
+app.use("/api/hotels", hotelRoutes);
+app.use("/api/rooms", roomRoutes);
+app.use("/api/bookings", bookingRoutes);
 async function startServer() {
-  console.log("Initializing DB...");
-  await initDB();
+  try {
+    console.log("Initializing DB...");
+    await initDB();
 
-  console.log("Creating tables...");
-  await createTables();
+    console.log("Creating tables...");
+    await createTables();
 
-  console.log("Starting server...");
-  app.listen(process.env.PORT, () => {
-    console.log(`Backend running on http://localhost:${process.env.PORT}`);
-  });
+    console.log("Starting server...");
+    app.listen(process.env.PORT, () => {
+      console.log(
+        `Backend running on http://localhost:${process.env.PORT}`
+      );
+    });
+  } catch (error) {
+    console.error("Failed to start server:", error);
+  }
 }
 
 startServer();
