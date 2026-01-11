@@ -4,28 +4,35 @@ import dotenv from "dotenv";
 
 import { initDB } from "./db.js";
 import createTables from "./setupTables.js";
-import  hotelRoutes from "./routes/hotel.routes.js";
+
+import hotelRoutes from "./routes/hotel.routes.js";
 import roomRoutes from "./routes/room.routes.js";
 import bookingRoutes from "./routes/booking.routes.js";
-
+import userRoutes from "./users/user.routes.js";
 import authRoutes from "./auth/auth.routes.js";
 
 dotenv.config();
 
 const app = express();
 
+// ===============================
+// MIDDLEWARE
+// ===============================
 app.use(cors());
 app.use(express.json());
-app.use("/api/auth", authRoutes);
-// Test route
-app.get("/api/test", (req, res) => {
-  res.json({ message: "Server is running!" });
-});
 
-// Routes
+// ===============================
+// ROUTES  ❗❗ THIS WAS MISSING ❗❗
+// ===============================
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/hotels", hotelRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/bookings", bookingRoutes);
+
+// ===============================
+// START SERVER
+// ===============================
 async function startServer() {
   try {
     console.log("Initializing DB...");

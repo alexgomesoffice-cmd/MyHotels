@@ -11,16 +11,17 @@ export const authenticate = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // { user_id, role }
+    req.user = decoded; // { user_id, email, role? }
     next();
   } catch (error) {
     return res.status(401).json({ message: "Invalid token" });
   }
 };
 
+// OPTIONAL — only use when roles exist
 export const authorizeRoles = (...roles) => {
   return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
+    if (!req.user?.role || !roles.includes(req.user.role)) {
       return res.status(403).json({ message: "Access denied" });
     }
     next();

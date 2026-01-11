@@ -14,6 +14,7 @@ import Register from "./Pages/Register";
 import Hotels from "./Pages/Hotels";
 import HotelDescription from "./Pages/HotelDescription";
 import SearchResults from "./Pages/SearchResults";
+import Profile from "./Pages/Profile"; // ✅ ADD
 
 // Layout for user pages
 import Layout from "./Layout";
@@ -27,7 +28,6 @@ import PendingHotels from "./admin/adminPages/PendingHotels";
 import Security from "./admin/adminPages/Security";
 
 const router = createBrowserRouter([
-  // User Routes
   {
     path: "/",
     element: <Layout />,
@@ -41,22 +41,21 @@ const router = createBrowserRouter([
       { path: "hotels", element: <Hotels /> },
       { path: "hotels/:id", element: <HotelDescription /> },
       { path: "search", element: <SearchResults /> },
+      { path: "profile", element: <Profile /> }, // ✅ ADD
     ],
   },
 
-  // Admin Routes
   {
-  path: "/admin",
-  element: <AdminLayout />,
-  children: [
-    { index: true, element: <Dashboard /> },
-    { path: "users", element: <Users /> },
-    { path: "hotels", element: <AdminHotels /> },
-    { path: "pending-hotels", element: <PendingHotels /> },
-    { path: "security", element: <Security /> },
-  ],
-}
-,
+    path: "/admin",
+    element: <AdminLayout />,
+    children: [
+      { index: true, element: <Dashboard /> },
+      { path: "users", element: <Users /> },
+      { path: "hotels", element: <AdminHotels /> },
+      { path: "pending-hotels", element: <PendingHotels /> },
+      { path: "security", element: <Security /> },
+    ],
+  },
 ]);
 
 const App = () => {

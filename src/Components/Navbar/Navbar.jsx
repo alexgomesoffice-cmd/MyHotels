@@ -1,9 +1,19 @@
-// Components/Navbar/Navbar.jsx
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import hotelsData from "../../data/hotelData";
+import { searchHotels } from "../../data/api";
 
 const Navbar = () => {
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem("user");
+    if (!storedUser) return null;
+
+    try {
+      return JSON.parse(storedUser);
+    } catch {
+      return null;
+    }
+  });
+
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -12,7 +22,27 @@ const Navbar = () => {
   const navigate = useNavigate();
   const searchRef = useRef(null);
 
-  // Close suggestions when clicking outside
+  // keep Navbar synced with login/logout
+  useEffect(() => {
+    const syncUser = () => {
+      const storedUser = localStorage.getItem("user");
+      if (!storedUser) {
+        setUser(null);
+        return;
+      }
+
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {
+        setUser(null);
+      }
+    };
+
+    window.addEventListener("storage", syncUser);
+    return () => window.removeEventListener("storage", syncUser);
+  }, []);
+
+  // Close suggestions on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (searchRef.current && !searchRef.current.contains(e.target)) {
@@ -20,27 +50,31 @@ const Navbar = () => {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Handle input changes
-  const handleChange = (e) => {
+  // Backend search
+  const handleChange = async (e) => {
     const value = e.target.value;
     setSearchTerm(value);
 
-    if (value.length > 0) {
-      const filtered = hotelsData.filter((hotel) =>
-        hotel.name.toLowerCase().includes(value.toLowerCase())
-      );
-      setSuggestions(filtered.slice(0, 5)); // show max 5 suggestions
+    if (!value.trim()) {
+      setSuggestions([]);
+      setSuggestionsOpen(false);
+      return;
+    }
+
+    try {
+      const results = await searchHotels(value);
+      setSuggestions(results.slice(0, 5));
       setSuggestionsOpen(true);
-    } else {
+    } catch {
       setSuggestions([]);
       setSuggestionsOpen(false);
     }
   };
 
-  // Handle selection from suggestions
   const handleSelect = (hotel) => {
     navigate(`/hotels/${hotel.id}`);
     setSearchTerm("");
@@ -48,9 +82,8 @@ const Navbar = () => {
     setSuggestionsOpen(false);
   };
 
-  // Handle search button click
   const handleSearchClick = () => {
-    if (searchTerm.trim() !== "") {
+    if (searchTerm.trim()) {
       navigate(`/search?q=${searchTerm}`);
       setSearchTerm("");
       setSuggestions([]);
@@ -58,38 +91,45 @@ const Navbar = () => {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    window.dispatchEvent(new Event("storage"));
+    navigate("/login");
+  };
+
   return (
     <header className="bg-white px-5 py-4 shadow-sm">
       <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
 
         {/* Logo */}
-        <Link to="/" className="font-bold text-xl whitespace-nowrap flex gap-1 items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" />
+        <Link to="/" className="font-bold text-xl flex gap-1 items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+            strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round"
+              d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" />
           </svg>
           MyHotels
         </Link>
 
-        {/* Search Box + Button */}
+        {/* Search */}
         <div ref={searchRef} className="flex-1 max-w-xl relative flex gap-2">
           <input
             type="text"
             value={searchTerm}
             onChange={handleChange}
-
             placeholder="Search hotels..."
-            className="border border-gray-300 rounded-md px-3 py-2 w-full focus:ring-1 focus:ring-blue-400 focus:outline-none"
+            className="border border-gray-300 rounded-md px-3 py-2 w-full focus:ring-1 focus:ring-blue-400"
           />
           <button
             onClick={handleSearchClick}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 whitespace-nowrap"
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
           >
             Search
           </button>
 
-          {/* Suggestions Dropdown */}
           {suggestionsOpen && suggestions.length > 0 && (
-            <ul className="absolute z-50 top-full mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+            <ul className="absolute z-50 top-full mt-1 w-full bg-white border rounded-md shadow-lg">
               {suggestions.map((hotel) => (
                 <li
                   key={hotel.id}
@@ -99,47 +139,90 @@ const Navbar = () => {
                   <img
                     src={hotel.image}
                     alt={hotel.name}
-                    className="w-10 h-10 object-cover rounded-md shrink-0"
+                    className="w-10 h-10 rounded-md object-cover"
                   />
-                  <span className="text-gray-800 truncate">{hotel.name}</span>
+                  <span className="truncate">{hotel.name}</span>
                 </li>
               ))}
             </ul>
           )}
         </div>
 
-        {/* Desktop Login/Register */}
+        {/* Desktop Auth */}
         <div className="hidden sm:flex items-center gap-4">
-          <Link to="/login">
-            <button className="border border-blue-600 text-blue-600 px-4 py-1 rounded-md hover:bg-blue-50">
-              Login
-            </button>
-          </Link>
+          {user ? (
+            <>
+              {/* 🔹 MODIFIED: clickable profile link */}
+              <Link
+                to="/profile"
+                className="text-gray-700 font-medium hover:underline"
+              >
+                Hi, {user.name}
+              </Link>
 
-          <Link to="/register">
-            <button className="bg-blue-600 text-white px-4 py-1 rounded-md hover:bg-blue-700 border border-blue-600">
-              Register
-            </button>
-          </Link>
+              <button
+                onClick={handleLogout}
+                className="border border-red-500 text-red-500 px-4 py-1 rounded-md hover:bg-red-50"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login">
+                <button className="border border-blue-600 text-blue-600 px-4 py-1 rounded-md hover:bg-blue-50">
+                  Login
+                </button>
+              </Link>
+              <Link to="/register">
+                <button className="bg-blue-600 text-white px-4 py-1 rounded-md hover:bg-blue-700">
+                  Register
+                </button>
+              </Link>
+            </>
+          )}
         </div>
 
-        {/* Mobile Profile Menu */}
+        {/* Mobile Profile */}
         <div className="sm:hidden relative">
-          <button onClick={() => setProfileOpen(!profileOpen)} aria-label="Profile menu">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-              <path fillRule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0a4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0" clipRule="evenodd" />
+          <button onClick={() => setProfileOpen(!profileOpen)}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+              fill="currentColor" className="w-6 h-6">
+              <path fillRule="evenodd"
+                d="M7.5 6a4.5 4.5 0 1 1 9 0a4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0"
+                clipRule="evenodd" />
             </svg>
           </button>
 
           {profileOpen && (
-            <div className="absolute right-0 mt-2 w-36 bg-white rounded-md shadow-lg z-50">
-              <ul className="flex flex-col text-center">
-                <Link to="/login" onClick={() => setProfileOpen(false)}>
-                  <li className="py-2 hover:bg-gray-100 cursor-pointer">Login</li>
-                </Link>
-                <Link to="/register" onClick={() => setProfileOpen(false)}>
-                  <li className="py-2 hover:bg-gray-100 cursor-pointer">Register</li>
-                </Link>
+            <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg">
+              <ul className="text-center">
+                {user ? (
+                  <>
+                    {/* 🔹 MODIFIED: clickable profile link */}
+                    <Link to="/profile">
+                      <li className="py-2 font-medium hover:bg-gray-100">
+                        Hi, {user.name}
+                      </li>
+                    </Link>
+
+                    <li
+                      onClick={handleLogout}
+                      className="py-2 text-red-500 hover:bg-gray-100 cursor-pointer"
+                    >
+                      Logout
+                    </li>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/login">
+                      <li className="py-2 hover:bg-gray-100">Login</li>
+                    </Link>
+                    <Link to="/register">
+                      <li className="py-2 hover:bg-gray-100">Register</li>
+                    </Link>
+                  </>
+                )}
               </ul>
             </div>
           )}
