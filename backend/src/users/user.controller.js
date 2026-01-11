@@ -1,8 +1,8 @@
 import { pool } from "../db.js";
 
-// ===============================
+
 // GET USER PROFILE
-// ===============================
+
 export const getUserProfile = async (req, res) => {
   try {
     // user_id injected by auth middleware (JWT)
@@ -39,9 +39,9 @@ export const getUserProfile = async (req, res) => {
   }
 };
 
-// ===============================
+
 // UPDATE USER PROFILE
-// ===============================
+
 export const updateUserProfile = async (req, res) => {
   try {
     const { user_id } = req.user;
@@ -53,9 +53,9 @@ export const updateUserProfile = async (req, res) => {
       address = null,
     } = req.body;
 
-    // -------------------------------
+
     // Update name in user table
-    // -------------------------------
+
     if (name) {
       await pool.query(
         `
@@ -67,9 +67,9 @@ export const updateUserProfile = async (req, res) => {
       );
     }
 
-    // -------------------------------
+
     // Check if user_details exists
-    // -------------------------------
+
     const [existing] = await pool.query(
       `
       SELECT user_details_id

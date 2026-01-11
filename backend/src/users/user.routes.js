@@ -1,16 +1,16 @@
 import express from "express";
+import authMiddleware from "../auth/auth.middleware.js";
 import {
   getUserProfile,
   updateUserProfile,
 } from "./user.controller.js";
-import { authenticate } from "../auth/auth.middleware.js";
 
 const router = express.Router();
 
-// GET logged-in user's profile
-router.get("/me", authenticate, getUserProfile);
+// Get logged-in user profile
+router.get("/me", authMiddleware, getUserProfile);
 
-// UPDATE logged-in user's profile
-router.put("/me", authenticate, updateUserProfile);
+// Update logged-in user profile
+router.put("/me", authMiddleware, updateUserProfile);
 
 export default router;

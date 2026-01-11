@@ -3,14 +3,13 @@ import { registerUser, loginUser } from "./auth.controller.js";
 
 const router = Router();
 
-// ===============================
-// AUTH ROUTES
-// ===============================
 
-// {message part} Register user
+// AUTH ROUTES
+
+// Register user
 router.post("/register", registerUser);
 
-// {message part} Login user
+// Login user
 router.post("/login", loginUser);
 
 export default router;

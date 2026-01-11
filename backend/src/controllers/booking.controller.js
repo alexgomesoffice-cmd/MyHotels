@@ -32,7 +32,7 @@ export const addBooking = async (req, res) => {
       });
     }
 
-    // CHECK ROOM AVAILABILITY ✅ FIXED CALL
+    // CHECK ROOM AVAILABILITY 
     const available = await isRoomAvailable(
       hotel_room_details_id,
       checkin_date,

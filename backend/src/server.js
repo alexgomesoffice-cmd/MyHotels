@@ -15,24 +15,23 @@ dotenv.config();
 
 const app = express();
 
-// ===============================
+
 // MIDDLEWARE
-// ===============================
+
 app.use(cors());
 app.use(express.json());
 
-// ===============================
-// ROUTES  ❗❗ THIS WAS MISSING ❗❗
-// ===============================
+
+// ROUTES 
+
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/hotels", hotelRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/bookings", bookingRoutes);
 
-// ===============================
+
 // START SERVER
-// ===============================
 async function startServer() {
   try {
     console.log("Initializing DB...");

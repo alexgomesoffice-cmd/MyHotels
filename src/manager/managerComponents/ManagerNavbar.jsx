@@ -1,9 +1,12 @@
 import React from "react";
 
-const AdminNavbar = () => {
+const ManagerNavbar = () => {
   return (
     <nav className="bg-white shadow-md px-5 py-4 flex items-center justify-between">
-      <h1 className="font-bold text-xl text-blue-600">Admin Panel</h1>
+      <h1 className="font-bold text-xl text-blue-600">
+        Manager Panel
+      </h1>
+
       <div className="flex items-center gap-4">
         <button className="border border-blue-600 text-blue-600 px-4 py-1 rounded-md hover:bg-blue-50">
           Profile
@@ -16,4 +19,4 @@ const AdminNavbar = () => {
   );
 };
 
-export default AdminNavbar;
+export default ManagerNavbar;

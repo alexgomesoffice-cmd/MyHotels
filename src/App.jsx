@@ -14,7 +14,7 @@ import Register from "./Pages/Register";
 import Hotels from "./Pages/Hotels";
 import HotelDescription from "./Pages/HotelDescription";
 import SearchResults from "./Pages/SearchResults";
-import Profile from "./Pages/Profile"; // ✅ ADD
+import Profile from "./Pages/Profile"; 
 
 // Layout for user pages
 import Layout from "./Layout";
@@ -26,6 +26,15 @@ import Users from "./admin/adminPages/UserList";
 import AdminHotels from "./admin/adminPages/HotelList";
 import PendingHotels from "./admin/adminPages/PendingHotels";
 import Security from "./admin/adminPages/Security";
+
+// Manager Pages
+import ManagerLayout from "./manager/managerComponents/ManagerLayout";
+import ManagerDashboard from "./manager/managerPages/ManagerDashboard";
+import ManagerHotels from "./manager/managerPages/ManagerHotels";
+import ManagerRooms from "./manager/managerPages/ManagerRooms";
+import ManagerBookings from "./manager/managerPages/ManagerBookings";
+
+// Admin Pages
 
 const router = createBrowserRouter([
   {
@@ -56,6 +65,18 @@ const router = createBrowserRouter([
       { path: "security", element: <Security /> },
     ],
   },
+
+ {
+  path: "/manager",
+  element: <ManagerLayout />,
+  children: [
+    { index: true, element: <ManagerDashboard /> },
+    { path: "hotels", element: <ManagerHotels /> },
+    { path: "rooms", element: <ManagerRooms /> },
+    { path: "bookings", element: <ManagerBookings /> },
+  ],
+},
+
 ]);
 
 const App = () => {
