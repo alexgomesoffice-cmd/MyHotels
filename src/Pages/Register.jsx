@@ -11,6 +11,7 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [roleId, setRoleId] = useState(2); // default = User
 
   // {message part} submit handler
   const handleRegister = async (e) => {
@@ -22,6 +23,7 @@ const Register = () => {
         name,
         email,
         password,
+        roleId, // ✅ ADDED (THIS WAS MISSING)
       });
 
       // {message part} redirect after success
@@ -55,6 +57,20 @@ const Register = () => {
 
           <form className="mt-6 space-y-4" onSubmit={handleRegister}>
             <div>
+              <div className="mb-3">
+                <label className="form-label">Register as</label>
+                <select
+                  className="form-select"
+                  value={roleId}
+                  onChange={(e) => setRoleId(Number(e.target.value))}
+                  required
+                >
+                  <option value={2}>User</option>
+                  <option value={3}>Hotel Manager</option>
+                  <option value={1}>Admin</option>
+                </select>
+              </div>
+
               <label className="text-sm text-gray-600">Full Name</label>
               <input
                 type="text"

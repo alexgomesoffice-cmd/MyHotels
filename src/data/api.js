@@ -48,3 +48,17 @@ export const updateMyProfile = async (data) => {
 };
 
 export default api;
+
+// ================= MANAGER =================
+
+export const fetchManagerDashboard = async () => {
+  const token = localStorage.getItem("token");
+
+  const response = await api.get("/manager/dashboard", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return response.data;
+};

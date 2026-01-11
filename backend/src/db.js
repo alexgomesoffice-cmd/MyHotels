@@ -22,3 +22,4 @@ async function initDB() {
 }
 
 export { pool, initDB };
+export default pool;

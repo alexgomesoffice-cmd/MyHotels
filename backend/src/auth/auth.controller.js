@@ -5,15 +5,20 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-
 // USER REGISTRATION
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, roleId } = req.body; // ✅ roleId added
 
     // Validation
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !roleId) {
       return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Allow only valid roles
+    const ALLOWED_ROLES = [1, 2, 3];
+    if (!ALLOWED_ROLES.includes(roleId)) {
+      return res.status(400).json({ message: "Invalid role" });
     }
 
     // Check existing email
@@ -29,13 +34,10 @@ export const registerUser = async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Default role = CUSTOMER
-    const DEFAULT_ROLE_ID = 1;
-
-    // Insert user
+    // Insert user with selected role
     const [result] = await pool.query(
       "INSERT INTO `user` (name, email, password, role_id) VALUES (?, ?, ?, ?)",
-      [name, email, hashedPassword, DEFAULT_ROLE_ID]
+      [name, email, hashedPassword, roleId]
     );
 
     const user_id = result.insertId;
@@ -45,13 +47,13 @@ export const registerUser = async (req, res) => {
       {
         user_id,
         email,
-        role_id: DEFAULT_ROLE_ID,
+        role_id: roleId,
       },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
-    // Return token + user (auto-login)
+    // Return token + user
     res.status(201).json({
       message: "Registration successful",
       token,
@@ -59,7 +61,7 @@ export const registerUser = async (req, res) => {
         user_id,
         name,
         email,
-        role_id: DEFAULT_ROLE_ID,
+        role_id: roleId,
       },
     });
   } catch (error) {
@@ -69,19 +71,17 @@ export const registerUser = async (req, res) => {
 };
 
 
-// USER LOGIN
+// USER LOGIN (UNCHANGED)
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validation
     if (!email || !password) {
       return res.status(400).json({
         message: "Email and password are required",
       });
     }
 
-    // Fetch user
     const [users] = await pool.query(
       "SELECT * FROM `user` WHERE email = ?",
       [email]
@@ -93,14 +93,12 @@ export const loginUser = async (req, res) => {
 
     const user = users[0];
 
-    // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Generate token
     const token = jwt.sign(
       {
         user_id: user.user_id,

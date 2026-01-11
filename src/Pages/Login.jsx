@@ -20,32 +20,42 @@ const Login = () => {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
 
-    try {
-      const response = await api.post("/auth/login", formData);
+  try {
+    const response = await api.post("/auth/login", formData);
 
-      // store token
-      localStorage.setItem("token", response.data.token);
+    // store token
+    localStorage.setItem("token", response.data.token);
 
-      // store ONLY user object
-      localStorage.setItem(
-        "user",
-        JSON.stringify(response.data.user)
-      );
+    // store ONLY user object
+    localStorage.setItem(
+      "user",
+      JSON.stringify(response.data.user)
+    );
 
-      // 🔥 notify Navbar immediately
-      window.dispatchEvent(new Event("storage"));
+    // 🔥 notify Navbar immediately
+    window.dispatchEvent(new Event("storage"));
 
+    // ✅ ROLE-BASED REDIRECT
+    const roleId = response.data.user.role_id;
+
+    if (roleId === 1) {
+      navigate("/admin");
+    } else if (roleId === 3) {
+      navigate("/manager");
+    } else {
       navigate("/");
-    } catch (err) {
-      setError(
-        err.response?.data?.message || "Invalid email or password"
-      );
     }
-  };
+  } catch (err) {
+    setError(
+      err.response?.data?.message || "Invalid email or password"
+    );
+  }
+};
+
 
   return (
     <>
