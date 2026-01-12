@@ -4,16 +4,17 @@ import { pool } from "../db.js";
 export async function createHotel({
   name,
   address,
+  description,
   hotel_type_id,
   created_by_user_id,
 }) {
   const [result] = await pool.query(
     `
     INSERT INTO HOTEL
-    (name, address, hotel_type_id, created_by_user_id, approval_status)
-    VALUES (?, ?, ?, ?, 'PENDING')
+    (name, address, description, hotel_type_id, created_by_user_id, approval_status)
+    VALUES (?, ?, ?, ?, ?, 'PENDING')
     `,
-    [name, address, hotel_type_id, created_by_user_id]
+    [name, address, description, hotel_type_id, created_by_user_id]
   );
 
   return result.insertId;
@@ -26,6 +27,7 @@ export async function getAllApprovedHotels() {
       h.hotel_id,
       h.name,
       h.address,
+      h.description,
       ht.name AS hotel_type
     FROM HOTEL h
     JOIN HOTEL_TYPE ht ON h.hotel_type_id = ht.hotel_type_id
@@ -44,6 +46,7 @@ export async function getHotelById(id) {
       h.hotel_id,
       h.name,
       h.address,
+      h.description,
       ht.name AS hotel_type,
       h.approval_status
     FROM HOTEL h
@@ -75,6 +78,7 @@ export async function approveHotel({
 
   return result.affectedRows;
 }
+
 // Admin: fetch all pending hotels
 export async function getPendingHotels() {
   const [rows] = await pool.query(`
@@ -82,6 +86,7 @@ export async function getPendingHotels() {
       h.hotel_id,
       h.name,
       h.address,
+      h.description,
       ht.name AS hotel_type,
       h.created_by_user_id,
       h.created_at
@@ -102,6 +107,7 @@ export async function getHotelsByManager(user_id) {
       h.hotel_id,
       h.name,
       h.address,
+      h.description,
       ht.name AS hotel_type,
       h.approval_status,
       h.created_at

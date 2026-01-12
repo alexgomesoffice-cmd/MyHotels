@@ -11,6 +11,9 @@ import bookingRoutes from "./routes/booking.routes.js";
 import userRoutes from "./users/user.routes.js";
 import authRoutes from "./auth/auth.routes.js";
 import managerRoutes from "./manager/manager.routes.js";
+import hotelTypeRoutes from "./hotelType/hotelType.routes.js";
+import  roomTypeRoutes  from "./roomType/roomType.routes.js";
+
 
 dotenv.config();
 
@@ -31,6 +34,9 @@ app.use("/api/hotels", hotelRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/manager", managerRoutes);
+app.use("/api/hotel-types", hotelTypeRoutes);
+app.use("/api/room-types", roomTypeRoutes);
+
 
 // START SERVER
 async function startServer() {

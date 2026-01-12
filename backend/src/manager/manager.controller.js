@@ -1,4 +1,5 @@
 import * as managerService from "./manager.service.js";
+import { getAllRoomTypes } from "../roomType/roomType.model.js";
 
 export const getManagerDashboard = async (req, res) => {
   try {
@@ -11,9 +12,11 @@ export const getManagerDashboard = async (req, res) => {
 
 export const getManagerHotels = async (req, res) => {
   try {
+    console.log("USER FROM TOKEN:", req.user); // 🔥 add this
     const hotels = await managerService.hotels(req.user.user_id);
     res.json(hotels);
   } catch (err) {
+    console.error("MANAGER HOTELS ERROR:", err); // 🔥 add this
     res.status(500).json({ message: err.message });
   }
 };
@@ -51,5 +54,18 @@ export const getManagerBookings = async (req, res) => {
     res.json(bookings);
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+};
+
+export const fetchRoomTypes = async (req, res) => {
+  try {
+    const roomTypes = await getAllRoomTypes();
+    res.json(roomTypes);
+  } catch (error) {
+    console.error("FETCH ROOM TYPES ERROR:", error);
+    res.status(500).json({
+      message: "Failed to fetch room types",
+      error: error.message,
+    });
   }
 };

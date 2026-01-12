@@ -9,10 +9,12 @@ import {
 } from "./manager.controller.js";
 
 import authMiddleware from "../auth/auth.middleware.js";
+import managerOnly from "../middlewares/managerOnly.js";
 
 const router = express.Router();
 
-router.use(authMiddleware);
+// All manager routes require auth + manager role
+router.use(authMiddleware, managerOnly);
 
 // Dashboard
 router.get("/dashboard", getManagerDashboard);

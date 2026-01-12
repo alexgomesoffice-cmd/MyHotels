@@ -1,14 +1,148 @@
-const ManagerHotels = () => {
-  return (
-    <div>
-      <div className="flex justify-between mb-5">
-        <h1 className="text-2xl font-bold">My Hotels</h1>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded">
-          + Add Hotel
-        </button>
-      </div>
+import React, { useEffect, useState } from "react";
+import api from "../../data/api";
 
-      <div className="bg-white shadow rounded-lg overflow-hidden">
+const ManagerHotels = () => {
+  const [hotels, setHotels] = useState([]);
+  const [hotelTypes, setHotelTypes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const [formData, setFormData] = useState({
+    name: "",
+    address: "",
+    description: "",
+    hotel_type_id: "",
+  });
+
+  useEffect(() => {
+    fetchHotels();
+    fetchHotelTypes();
+  }, []);
+
+  const fetchHotels = async () => {
+    try {
+      const res = await api.get("/manager/hotels");
+      setHotels(res.data);
+    } catch {
+      setError("Failed to load hotels");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchHotelTypes = async () => {
+    try {
+      const res = await api.get("/hotel-types");
+      setHotelTypes(res.data);
+    } catch {
+      setError("Failed to load hotel types");
+    }
+  };
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      await api.post("/manager/hotels", {
+        ...formData,
+        hotel_type_id: Number(formData.hotel_type_id),
+      });
+
+      setFormData({
+        name: "",
+        address: "",
+        description: "",
+        hotel_type_id: "",
+      });
+
+      fetchHotels();
+    } catch {
+      setError("Failed to create hotel");
+    }
+  };
+
+  if (loading) {
+    return <p className="text-center mt-10">Loading hotels...</p>;
+  }
+
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-6">My Hotels</h1>
+
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+
+      {/* CREATE HOTEL */}
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-4 rounded shadow mb-6 space-y-4"
+      >
+        <h2 className="font-semibold">Add New Hotel</h2>
+
+        <input
+          type="text"
+          name="name"
+          placeholder="Hotel Name"
+          value={formData.name}
+          onChange={handleChange}
+          required
+          className="w-full border px-3 py-2 rounded"
+        />
+
+        <input
+          type="text"
+          name="address"
+          placeholder="Address"
+          value={formData.address}
+          onChange={handleChange}
+          required
+          className="w-full border px-3 py-2 rounded"
+        />
+
+        {/* HOTEL DESCRIPTION */}
+        <textarea
+          name="description"
+          placeholder="Hotel Description"
+          value={formData.description}
+          onChange={handleChange}
+          required
+          className="w-full border px-3 py-2 rounded"
+          rows={3}
+        />
+
+        {/* HOTEL TYPE DROPDOWN */}
+        <select
+          name="hotel_type_id"
+          value={formData.hotel_type_id}
+          onChange={handleChange}
+          required
+          className="w-full border px-3 py-2 rounded"
+        >
+          <option value="">Select Hotel Type</option>
+          {hotelTypes.map((type) => (
+            <option
+              key={type.hotel_type_id}
+              value={type.hotel_type_id}
+            >
+              {type.name}
+            </option>
+          ))}
+        </select>
+
+        <button className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">
+          Submit for Approval
+        </button>
+      </form>
+
+      {/* HOTEL LIST */}
+      <div className="bg-white rounded shadow">
         <table className="w-full text-left">
           <thead className="bg-gray-100">
             <tr>
@@ -18,17 +152,23 @@ const ManagerHotels = () => {
             </tr>
           </thead>
           <tbody>
-            <tr className="border-t">
-              <td className="p-3">Sample Hotel</td>
-              <td className="p-3">Dhaka</td>
-              <td className="p-3">
-                <span className="px-2 py-1 text-sm rounded bg-yellow-100 text-yellow-700">
-                  PENDING
-                </span>
-              </td>
-            </tr>
+            {hotels.map((hotel) => (
+              <tr key={hotel.hotel_id} className="border-t">
+                <td className="p-3">{hotel.name}</td>
+                <td className="p-3">{hotel.address}</td>
+                <td className="p-3 font-semibold">
+                  {hotel.approval_status}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
+
+        {hotels.length === 0 && (
+          <p className="text-center p-4 text-gray-500">
+            No hotels added yet
+          </p>
+        )}
       </div>
     </div>
   );

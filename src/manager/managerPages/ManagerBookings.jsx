@@ -1,27 +1,68 @@
-const ManagerBookings = () => {
-  return (
-    <div>
-      <h1 className="text-2xl font-bold mb-5">Bookings</h1>
+import React, { useEffect, useState } from "react";
+import api from "../../data/api";
 
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <table className="w-full">
+const ManagerBookings = () => {
+  const [bookings, setBookings] = useState([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  const fetchBookings = async () => {
+    try {
+      const res = await api.get("/manager/bookings");
+      setBookings(res.data);
+    } catch {
+      setError("Failed to load bookings");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <p className="text-center mt-10">Loading bookings...</p>;
+  }
+
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-6">Bookings</h1>
+
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+
+      <div className="bg-white rounded shadow">
+        <table className="w-full text-left">
           <thead className="bg-gray-100">
             <tr>
-              <th className="p-3">Booking ID</th>
               <th className="p-3">Hotel</th>
               <th className="p-3">Room</th>
+              <th className="p-3">Check-in</th>
+              <th className="p-3">Check-out</th>
+              <th className="p-3">Price</th>
               <th className="p-3">Status</th>
             </tr>
           </thead>
+
           <tbody>
-            <tr className="border-t">
-              <td className="p-3">#123</td>
-              <td className="p-3">Hotel A</td>
-              <td className="p-3">101</td>
-              <td className="p-3 text-green-600">CONFIRMED</td>
-            </tr>
+            {bookings.map((b) => (
+              <tr key={b.booking_id} className="border-t">
+                <td className="p-3">{b.hotel_name}</td>
+                <td className="p-3">{b.room_number}</td>
+                <td className="p-3">{b.check_in_date}</td>
+                <td className="p-3">{b.check_out_date}</td>
+                <td className="p-3">${b.total_price}</td>
+                <td className="p-3 font-semibold">{b.status}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
+
+        {bookings.length === 0 && (
+          <p className="text-center p-4 text-gray-500">
+            No bookings found
+          </p>
+        )}
       </div>
     </div>
   );
