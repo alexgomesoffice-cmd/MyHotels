@@ -13,7 +13,10 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const adminToken = localStorage.getItem("adminToken");
+    const userToken = localStorage.getItem("token");
+
+    const token = adminToken || userToken;
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -22,7 +25,7 @@ api.interceptors.request.use(
     return config;
   },
   (error) => Promise.reject(error)
-);
+);;
 // HOTELS
 
 export const fetchAllHotels = async () => {

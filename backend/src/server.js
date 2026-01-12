@@ -13,6 +13,7 @@ import authRoutes from "./auth/auth.routes.js";
 import managerRoutes from "./manager/manager.routes.js";
 import hotelTypeRoutes from "./hotelType/hotelType.routes.js";
 import  roomTypeRoutes  from "./roomType/roomType.routes.js";
+import adminRoutes from "./admin/admin.routes.js";
 
 
 dotenv.config();
@@ -36,6 +37,7 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/manager", managerRoutes);
 app.use("/api/hotel-types", hotelTypeRoutes);
 app.use("/api/room-types", roomTypeRoutes);
+app.use("/api/admin", adminRoutes);
 
 
 // START SERVER
