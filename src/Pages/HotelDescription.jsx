@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import hotelsData from "../data/hotelData";
+import api, { fetchRoomsByHotel } from "../data/api";
+
 import Navbar from "../Components/Navbar/Navbar";
 import Footer from "../Components/Footer/Footer";
 
@@ -8,81 +9,100 @@ const HotelDescription = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const hotel = hotelsData.find(
-    (hotel) => hotel.id === parseInt(id)
-  );
+  const [hotel, setHotel] = useState(null);
+  const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch hotel details
+        const hotelRes = await api.get(`/hotels/${id}`);
+        setHotel(hotelRes.data);
+
+        // Fetch rooms for hotel
+        const roomsRes = await fetchRoomsByHotel(id);
+        setRooms(roomsRes);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load hotel details");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id]);
+
+  if (loading) {
+    return <p className="text-center mt-20">Loading hotel...</p>;
+  }
+
+  if (error) {
+    return <p className="text-center mt-20 text-red-500">{error}</p>;
+  }
 
   if (!hotel) {
-    return (
-      <div className="text-center py-20">
-        <h2 className="text-2xl font-semibold">Hotel not found</h2>
-        <button
-          onClick={() => navigate("/hotels")}
-          className="mt-4 bg-blue-600 text-white px-5 py-2.5 rounded-lg"
-        >
-          Back to Hotels
-        </button>
-      </div>
-    );
+    return <p className="text-center mt-20">Hotel not found</p>;
   }
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] flex flex-col">
+    <>
       <Navbar />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-12 flex-1">
-        
-        {/* Image */}
-        <img
-          src={hotel.image}
-          alt={hotel.name}
-          className="w-full h-[260px] sm:h-[360px] md:h-[440px] object-cover rounded-3xl mb-10"
-        />
-
-        {/* Header */}
-        <div className="flex items-start justify-between gap-6 flex-nowrap">
-          
-          {/* Title + Info */}
-          <div className="min-w-0">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-gray-900 leading-tight">
-              {hotel.name}
-            </h1>
-
-            <p className="text-sm text-gray-500 mt-2">
-              {hotel.location}
-            </p>
-
-            <p className="text-sm text-gray-500 mt-1">
-              ★ {hotel.rating}
-            </p>
-          </div>
-
-          {/* Price + Button */}
-          <div className="flex items-center gap-5 shrink-0 whitespace-nowrap">
-            <div className="text-right">
-              <p className="text-xl sm:text-2xl font-semibold text-gray-900">
-                ${hotel.price}
-              </p>
-              <p className="text-xs text-gray-500 -mt-1">
-                per night
-              </p>
-            </div>
-
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-medium cursor-pointer">
-              Confirm Booking
-            </button>
-          </div>
-        </div>
-
-        {/* Description */}
-        <p className="mt-10 max-w-3xl text-gray-600 leading-relaxed">
-          {hotel.description}
+      <div className="max-w-6xl mx-auto px-4 py-10">
+        {/* HOTEL INFO */}
+        <h1 className="text-3xl font-bold mb-2">{hotel.name}</h1>
+        <p className="text-gray-600 mb-2">{hotel.address}</p>
+        <p className="text-gray-700 mb-6">
+          {hotel.description || "No description provided by the manager."}
         </p>
 
-      </main>
+        <h2 className="text-2xl font-semibold mb-4">Available Rooms</h2>
+
+        {/* ROOMS */}
+        {rooms.length === 0 ? (
+          <p className="text-gray-500">
+            No rooms available for this hotel.
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {rooms.map((room) => (
+              <div
+                key={room.hotel_room_details_id}
+                className="border rounded-lg p-4 flex justify-between items-center"
+              >
+                <div>
+                  <p className="font-semibold">{room.room_type}</p>
+                  <p className="text-sm text-gray-500">
+                    Room #{room.room_number}
+                  </p>
+                </div>
+
+                <div className="text-right">
+                  <p className="text-lg font-bold">
+                    ${room.price} / night
+                  </p>
+                  <button
+                    onClick={() =>
+                      navigate("/booking-details", {
+                        state: { room },
+                      })
+                    }
+                    className="mt-2 bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800"
+                  >
+                    Book Now
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <Footer />
-    </div>
+    </>
   );
 };
 

@@ -13,6 +13,8 @@ const ManagerHotels = () => {
     description: "",
     hotel_type_id: "",
   });
+  
+const ADDRESS_OPTIONS = [ "Dhaka", "Chittagong", "Khulna", "Barisal", "Sylhet", "Rajshahi", "Rangpur" ];
 
   useEffect(() => {
     fetchHotels();
@@ -96,28 +98,22 @@ const ManagerHotels = () => {
           className="w-full border px-3 py-2 rounded"
         />
 
-        <input
-          type="text"
-          name="address"
-          placeholder="Address"
-          value={formData.address}
-          onChange={handleChange}
-          required
-          className="w-full border px-3 py-2 rounded"
-        />
-
-        {/* HOTEL DESCRIPTION */}
-        <textarea
-          name="description"
-          placeholder="Hotel Description"
-          value={formData.description}
-          onChange={handleChange}
-          required
-          className="w-full border px-3 py-2 rounded"
-          rows={3}
-        />
-
-        {/* HOTEL TYPE DROPDOWN */}
+        {/* HOTEL LOCATION */}
+<select
+  name="address"
+  value={formData.address}
+  onChange={handleChange}
+  required
+  className="w-full border px-3 py-2 rounded"
+>
+  <option value="">Select Location</option>
+  {ADDRESS_OPTIONS.map((city) => (
+    <option key={city} value={city}>
+      {city}
+    </option>
+  ))}
+</select>
+      {/* HOTEL TYPE DROPDOWN */}
         <select
           name="hotel_type_id"
           value={formData.hotel_type_id}
@@ -135,6 +131,17 @@ const ManagerHotels = () => {
             </option>
           ))}
         </select>
+
+        {/* HOTEL DESCRIPTION */}
+        <textarea
+          name="description"
+          placeholder="Hotel Description"
+          value={formData.description}
+          onChange={handleChange}
+          required
+          className="w-full border px-3 py-2 rounded"
+          rows={3}
+        />
 
         <button className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">
           Submit for Approval

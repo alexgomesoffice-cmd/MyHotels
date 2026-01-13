@@ -43,7 +43,7 @@ export const hotels = async (managerId) => {
 };
 
 export const createHotel = async (managerId, data) => {
-  const { name, address, hotel_type_id } = data;
+  const { name, address, description, hotel_type_id } = data;
 
   // 🔍 Check for duplicate hotel (same name + address + type)
   const [existing] = await db.query(
@@ -63,17 +63,16 @@ export const createHotel = async (managerId, data) => {
     );
   }
 
-  // ✅ Create as PENDING
+  // ✅ Create as PENDING (description INCLUDED)
   await db.query(
     `
     INSERT INTO hotel
-    (name, address, hotel_type_id, created_by_user_id, approval_status)
-    VALUES (?, ?, ?, ?, 'PENDING')
+    (name, address, description, hotel_type_id, created_by_user_id, approval_status)
+    VALUES (?, ?, ?, ?, ?, 'PENDING')
     `,
-    [name, address, hotel_type_id, managerId]
+    [name, address, description, hotel_type_id, managerId]
   );
 };
-
 
 /* ================= ROOMS ================= */
 

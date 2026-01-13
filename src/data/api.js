@@ -50,6 +50,11 @@ export const updateMyProfile = async (data) => {
   return response.data;
 };
 
+export const getHotels = async () => {
+  const response = await api.get("/hotels");
+  return response.data;
+};
+
 /* ================= MANAGER ================= */
 
 export const fetchManagerDashboard = async () => {

@@ -15,6 +15,8 @@ import Hotels from "./Pages/Hotels";
 import HotelDescription from "./Pages/HotelDescription";
 import SearchResults from "./Pages/SearchResults";
 import Profile from "./Pages/Profile"; 
+import BookingDetails from "./Pages/BookingDetails";
+
 
 // Layout for user pages
 import Layout from "./Layout";
@@ -50,7 +52,8 @@ const router = createBrowserRouter([
       { path: "hotels", element: <Hotels /> },
       { path: "hotels/:id", element: <HotelDescription /> },
       { path: "search", element: <SearchResults /> },
-      { path: "profile", element: <Profile /> }, // ✅ ADD
+      { path: "profile", element: <Profile /> },
+      { path: "booking-details", element:<BookingDetails />}
     ],
   },
 

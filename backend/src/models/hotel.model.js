@@ -1,6 +1,6 @@
 import { pool } from "../db.js";
 
-//HOTEL MANAGER > ADD HOTEL
+// HOTEL MANAGER > ADD HOTEL
 export async function createHotel({
   name,
   address,
@@ -20,7 +20,7 @@ export async function createHotel({
   return result.insertId;
 }
 
- //PUBLIC > FETCH APPROVED HOTELS
+// PUBLIC > FETCH APPROVED HOTELS (WITH MIN PRICE PER NIGHT)
 export async function getAllApprovedHotels() {
   const [rows] = await pool.query(`
     SELECT 
@@ -28,17 +28,22 @@ export async function getAllApprovedHotels() {
       h.name,
       h.address,
       h.description,
-      ht.name AS hotel_type
-    FROM HOTEL h
-    JOIN HOTEL_TYPE ht ON h.hotel_type_id = ht.hotel_type_id
+      ht.name AS hotel_type,
+      MIN(hrd.price) AS price_per_night
+    FROM hotel h
+    JOIN hotel_type ht 
+      ON h.hotel_type_id = ht.hotel_type_id
+    LEFT JOIN hotel_room_details hrd
+      ON h.hotel_id = hrd.hotel_id
+      AND hrd.approval_status = 'APPROVED'
     WHERE h.approval_status = 'APPROVED'
+    GROUP BY h.hotel_id
   `);
 
   return rows;
 }
 
-
-//FETCH SINGLE HOTEL
+// FETCH SINGLE HOTEL
 export async function getHotelById(id) {
   const [rows] = await pool.query(
     `
@@ -49,8 +54,8 @@ export async function getHotelById(id) {
       h.description,
       ht.name AS hotel_type,
       h.approval_status
-    FROM HOTEL h
-    JOIN HOTEL_TYPE ht ON h.hotel_type_id = ht.hotel_type_id
+    FROM hotel h
+    JOIN hotel_type ht ON h.hotel_type_id = ht.hotel_type_id
     WHERE h.hotel_id = ?
     `,
     [id]
@@ -67,7 +72,7 @@ export async function approveHotel({
 }) {
   const [result] = await pool.query(
     `
-    UPDATE HOTEL
+    UPDATE hotel
     SET 
       approval_status = ?,
       approved_by_admin_id = ?
@@ -79,7 +84,7 @@ export async function approveHotel({
   return result.affectedRows;
 }
 
-// Admin: fetch all pending hotels
+// ADMIN > FETCH PENDING HOTELS
 export async function getPendingHotels() {
   const [rows] = await pool.query(`
     SELECT
@@ -90,8 +95,8 @@ export async function getPendingHotels() {
       ht.name AS hotel_type,
       h.created_by_user_id,
       h.created_at
-    FROM HOTEL h
-    JOIN HOTEL_TYPE ht ON h.hotel_type_id = ht.hotel_type_id
+    FROM hotel h
+    JOIN hotel_type ht ON h.hotel_type_id = ht.hotel_type_id
     WHERE h.approval_status = 'PENDING'
     ORDER BY h.created_at DESC
   `);
@@ -99,7 +104,7 @@ export async function getPendingHotels() {
   return rows;
 }
 
-// Hotel Manager: fetch own hotels
+// HOTEL MANAGER > FETCH OWN HOTELS
 export async function getHotelsByManager(user_id) {
   const [rows] = await pool.query(
     `
@@ -111,8 +116,8 @@ export async function getHotelsByManager(user_id) {
       ht.name AS hotel_type,
       h.approval_status,
       h.created_at
-    FROM HOTEL h
-    JOIN HOTEL_TYPE ht ON h.hotel_type_id = ht.hotel_type_id
+    FROM hotel h
+    JOIN hotel_type ht ON h.hotel_type_id = ht.hotel_type_id
     WHERE h.created_by_user_id = ?
     ORDER BY h.created_at DESC
     `,
