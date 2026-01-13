@@ -15,21 +15,31 @@ const AdminSidebar = () => {
             Dashboard
           </NavLink>
         </li>
+
         <li>
           <NavLink to="/admin/users" className={linkClass}>
             Users
           </NavLink>
         </li>
+
         <li>
           <NavLink to="/admin/hotels" className={linkClass}>
             Hotels
           </NavLink>
         </li>
+
         <li>
           <NavLink to="/admin/pending-hotels" className={linkClass}>
             Pending Hotels
           </NavLink>
         </li>
+        
+        <li>
+          <NavLink to="/admin/pending-rooms" className={linkClass}>
+           Pending Rooms
+          </NavLink>
+        </li>
+
         <li>
           <NavLink to="/admin/security" className={linkClass}>
             System & Security

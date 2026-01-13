@@ -48,7 +48,7 @@ export const getPendingHotels = async () => {
     FROM hotel h
     JOIN hotel_type ht ON h.hotel_type_id = ht.hotel_type_id
     JOIN user u ON h.created_by_user_id = u.user_id
-    WHERE h.approval_status = 'PENDING'
+    WHERE h.approval_status = 'pending'
     ORDER BY h.created_at DESC
   `);
   return rows;
@@ -56,11 +56,13 @@ export const getPendingHotels = async () => {
 
 // Approve / Reject hotel
 export const updateHotelStatus = async (hotelId, status, adminId) => {
+  const normalizedStatus = status.toLowerCase(); // 'APPROVED' → 'approved'
+
   await pool.query(`
     UPDATE hotel
     SET approval_status = ?, approved_by_admin_id = ?
     WHERE hotel_id = ?
-  `, [status, adminId, hotelId]);
+  `, [normalizedStatus, adminId, hotelId]);
 };
 
 /* ================= ROOMS ================= */
@@ -113,4 +115,71 @@ export const getAllBookings = async () => {
     ORDER BY b.created_at DESC
   `);
   return rows;
+};
+
+/* ================= USERS ================= */
+
+// Fetch all users
+export const getAllUsers = async () => {
+  const [rows] = await pool.query(`
+    SELECT
+      user_id,
+      name,
+      email,
+      role_id,
+      is_blocked,
+      created_at
+    FROM user
+    ORDER BY created_at DESC
+  `);
+
+  return rows;
+};
+
+// Block / Unblock user
+export const updateUserStatus = async (userId, isBlocked) => {
+  await pool.query(
+    `
+    UPDATE user
+    SET is_blocked = ?
+    WHERE user_id = ?
+  `,
+    [isBlocked, userId]
+  );
+};
+
+
+/* ================= HOTELS (ADMIN LIST) ================= */
+
+// Fetch all hotels (ADMIN)
+export const getAllHotels = async () => {
+  const [rows] = await pool.query(`
+    SELECT
+      h.hotel_id,
+      h.name,
+      h.address,
+      ht.name AS hotel_type,
+      h.approval_status
+    FROM hotel h
+    JOIN hotel_type ht ON h.hotel_type_id = ht.hotel_type_id
+    WHERE h.approval_status = 'approved'
+    ORDER BY h.created_at DESC
+  `);
+
+  return rows;
+};
+
+// Delete hotel (admin)
+export const deleteHotel = async (hotelId) => {
+  // Delete rooms first (FK safety)
+  await pool.query(
+    "DELETE FROM hotel_room_details WHERE hotel_id = ?",
+    [hotelId]
+  );
+
+  // Delete hotel
+  await pool.query(
+    "DELETE FROM hotel WHERE hotel_id = ?",
+    [hotelId]
+  );
 };

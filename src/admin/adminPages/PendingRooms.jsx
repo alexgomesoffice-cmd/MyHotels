@@ -1,45 +1,45 @@
 import React, { useEffect, useState } from "react";
 import {
-  fetchPendingHotels,
-  decideHotel,
+  fetchPendingRooms,
+  decideRoom,
 } from "../../data/api";
 
-const PendingHotels = () => {
-  const [hotels, setHotels] = useState([]);
+const PendingRooms = () => {
+  const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const loadHotels = async () => {
+  const loadRooms = async () => {
     try {
       setLoading(true);
-      const data = await fetchPendingHotels();
-      setHotels(data);
+      const data = await fetchPendingRooms();
+      setRooms(data);
     } catch (err) {
-      console.error("FETCH PENDING HOTELS ERROR:", err);
-      setError("Failed to load pending hotels");
+      console.error("FETCH PENDING ROOMS ERROR:", err);
+      setError("Failed to load pending rooms");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadHotels();
+    loadRooms();
   }, []);
 
-  const handleAction = async (hotel_id, status) => {
+  const handleAction = async (roomId, status) => {
     try {
-      await decideHotel(hotel_id, status);
-      loadHotels(); // refresh list
+      await decideRoom(roomId, status);
+      loadRooms(); // refresh list
     } catch (err) {
-      console.error("UPDATE HOTEL STATUS ERROR:", err);
-      alert("Failed to update hotel status");
+      console.error("UPDATE ROOM STATUS ERROR:", err);
+      alert("Failed to update room status");
     }
   };
 
   if (loading) {
     return (
       <p className="text-center mt-10">
-        Loading pending hotels...
+        Loading pending rooms...
       </p>
     );
   }
@@ -47,7 +47,7 @@ const PendingHotels = () => {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">
-        Pending Hotels
+        Pending Rooms
       </h1>
 
       {error && (
@@ -58,31 +58,32 @@ const PendingHotels = () => {
         <table className="w-full text-left">
           <thead className="bg-gray-100">
             <tr>
-              <th className="p-3">Name</th>
-              <th className="p-3">Address</th>
-              <th className="p-3">Type</th>
+              <th className="p-3">Hotel</th>
+              <th className="p-3">Room No</th>
+              <th className="p-3">Room Type</th>
+              <th className="p-3">Price</th>
               <th className="p-3">Manager</th>
               <th className="p-3">Actions</th>
             </tr>
           </thead>
 
           <tbody>
-            {hotels.map((hotel) => (
+            {rooms.map((room) => (
               <tr
-                key={hotel.hotel_id}
+                key={room.hotel_room_details_id}
                 className="border-t"
               >
-                <td className="p-3">{hotel.name}</td>
-                <td className="p-3">{hotel.address}</td>
-                <td className="p-3">{hotel.hotel_type}</td>
-                <td className="p-3">
-                  {hotel.manager_name}
-                </td>
+                <td className="p-3">{room.hotel_name}</td>
+                <td className="p-3">{room.room_number}</td>
+                <td className="p-3">{room.room_type}</td>
+                <td className="p-3">৳ {room.price}</td>
+                <td className="p-3">{room.manager_name}</td>
+
                 <td className="p-3 space-x-2">
                   <button
                     onClick={() =>
                       handleAction(
-                        hotel.hotel_id,
+                        room.hotel_room_details_id,
                         "APPROVED"
                       )
                     }
@@ -94,7 +95,7 @@ const PendingHotels = () => {
                   <button
                     onClick={() =>
                       handleAction(
-                        hotel.hotel_id,
+                        room.hotel_room_details_id,
                         "REJECTED"
                       )
                     }
@@ -108,9 +109,9 @@ const PendingHotels = () => {
           </tbody>
         </table>
 
-        {hotels.length === 0 && (
+        {rooms.length === 0 && (
           <p className="text-center p-4 text-gray-500">
-            No pending hotels
+            No pending rooms
           </p>
         )}
       </div>
@@ -118,4 +119,4 @@ const PendingHotels = () => {
   );
 };
 
-export default PendingHotels;
+export default PendingRooms;

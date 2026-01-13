@@ -26,7 +26,7 @@ import Users from "./admin/adminPages/UserList";
 import AdminHotels from "./admin/adminPages/HotelList";
 import PendingHotels from "./admin/adminPages/PendingHotels";
 import Security from "./admin/adminPages/Security";
-
+import PendingRooms from "./admin/adminPages/PendingRooms";
 // Manager Pages
 import ManagerLayout from "./manager/managerComponents/ManagerLayout";
 import ManagerDashboard from "./manager/managerPages/ManagerDashboard";
@@ -34,7 +34,7 @@ import ManagerHotels from "./manager/managerPages/ManagerHotels";
 import ManagerRooms from "./manager/managerPages/ManagerRooms";
 import ManagerBookings from "./manager/managerPages/ManagerBookings";
 
-// Admin Pages
+
 
 const router = createBrowserRouter([
   {
@@ -62,6 +62,7 @@ const router = createBrowserRouter([
       { path: "users", element: <Users /> },
       { path: "hotels", element: <AdminHotels /> },
       { path: "pending-hotels", element: <PendingHotels /> },
+      { path: "pending-rooms", element: <PendingRooms /> },
       { path: "security", element: <Security /> },
     ],
   },
@@ -74,6 +75,7 @@ const router = createBrowserRouter([
     { path: "hotels", element: <ManagerHotels /> },
     { path: "rooms", element: <ManagerRooms /> },
     { path: "bookings", element: <ManagerBookings /> },
+    
   ],
 },
 

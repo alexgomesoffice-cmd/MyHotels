@@ -36,7 +36,7 @@ const handleSubmit = async (e) => {
       JSON.stringify(response.data.user)
     );
 
-    // 🔥 notify Navbar immediately
+    // notify Navbar immediately
     window.dispatchEvent(new Event("storage"));
 
     // ✅ ROLE-BASED REDIRECT

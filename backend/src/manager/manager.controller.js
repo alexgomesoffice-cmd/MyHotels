@@ -12,11 +12,11 @@ export const getManagerDashboard = async (req, res) => {
 
 export const getManagerHotels = async (req, res) => {
   try {
-    console.log("USER FROM TOKEN:", req.user); // 🔥 add this
+    console.log("USER FROM TOKEN:", req.user); 
     const hotels = await managerService.hotels(req.user.user_id);
     res.json(hotels);
   } catch (err) {
-    console.error("MANAGER HOTELS ERROR:", err); // 🔥 add this
+    console.error("MANAGER HOTELS ERROR:", err); 
     res.status(500).json({ message: err.message });
   }
 };
@@ -69,3 +69,4 @@ export const fetchRoomTypes = async (req, res) => {
     });
   }
 };
+

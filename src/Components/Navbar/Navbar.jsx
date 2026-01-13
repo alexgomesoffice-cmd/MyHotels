@@ -153,12 +153,9 @@ const Navbar = () => {
           {user ? (
             <>
               {/* 🔹 MODIFIED: clickable profile link */}
-              <Link
-                to="/profile"
-                className="text-gray-700 font-medium hover:underline"
-              >
-                Hi, {user.name}
-              </Link>
+              <Link to="/profile" className="border border-blue-600 text-blue-600 px-4 py-1 rounded-md hover:bg-blue-50 inline-block">
+                 Profile
+               </Link>
 
               <button
                 onClick={handleLogout}
@@ -200,10 +197,8 @@ const Navbar = () => {
                 {user ? (
                   <>
                     {/* 🔹 MODIFIED: clickable profile link */}
-                    <Link to="/profile">
-                      <li className="py-2 font-medium hover:bg-gray-100">
-                        Hi, {user.name}
-                      </li>
+                    <Link to="/profile" className="border border-blue-600 text-blue-600 px-4 py-1 rounded-md hover:bg-blue-50 inline-block">
+                          Profile
                     </Link>
 
                     <li

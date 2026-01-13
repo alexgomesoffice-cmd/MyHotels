@@ -21,12 +21,9 @@ const ManagerNavbar = () => {
       </h1>
 
       <div className="flex items-center gap-4">
-        <Link
-  to="/profile"
-  className="border border-blue-600 text-blue-600 px-4 py-1 rounded-md hover:bg-blue-50 inline-block"
->
-  Profile
-</Link>
+        <Link to="/profile" className="border border-blue-600 text-blue-600 px-4 py-1 rounded-md hover:bg-blue-50 inline-block">
+      Profile
+        </Link>
         <button onClick={handleLogout}
         className="bg-blue-600 text-white px-4 py-1 rounded-md hover:bg-blue-700">
           Logout

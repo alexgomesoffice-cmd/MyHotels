@@ -73,3 +73,54 @@ export const getAllBookings = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+
+// GET all users
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await adminService.getAllUsers();
+    res.json(users);
+  } catch (err) {
+    console.error("GET USERS ERROR:", err);
+    res.status(500).json({ message: "Failed to load users" });
+  }
+};
+
+// Block / Unblock user
+export const updateUserStatus = async (req, res) => {
+  const { user_id, is_blocked } = req.body;
+
+  try {
+    await adminService.updateUserStatus(user_id, is_blocked);
+    res.json({ message: "User status updated" });
+  } catch (err) {
+    console.error("UPDATE USER STATUS ERROR:", err);
+    res.status(500).json({ message: "Failed to update user" });
+  }
+};
+
+/* ================= HOTELS MANAGEMENT ================= */
+
+// GET all hotels
+export const getAllHotels = async (req, res) => {
+  try {
+    const hotels = await adminService.getAllHotels();
+    res.json(hotels);
+  } catch (err) {
+    console.error("GET HOTELS ERROR:", err);
+    res.status(500).json({ message: "Failed to load hotels" });
+  }
+};
+
+// DELETE hotel
+export const deleteHotel = async (req, res) => {
+  const { hotelId } = req.params;
+
+  try {
+    await adminService.deleteHotel(hotelId);
+    res.json({ message: "Hotel deleted successfully" });
+  } catch (err) {
+    console.error("DELETE HOTEL ERROR:", err);
+    res.status(500).json({ message: "Failed to delete hotel" });
+  }
+};

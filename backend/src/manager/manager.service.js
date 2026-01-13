@@ -45,15 +45,35 @@ export const hotels = async (managerId) => {
 export const createHotel = async (managerId, data) => {
   const { name, address, hotel_type_id } = data;
 
+  // 🔍 Check for duplicate hotel (same name + address + type)
+  const [existing] = await db.query(
+    `
+    SELECT hotel_id
+    FROM hotel
+    WHERE name = ?
+      AND address = ?
+      AND hotel_type_id = ?
+    `,
+    [name, address, hotel_type_id]
+  );
+
+  if (existing.length > 0) {
+    throw new Error(
+      "Hotel with same name, address, and type already exists"
+    );
+  }
+
+  // ✅ Create as PENDING
   await db.query(
     `
     INSERT INTO hotel
-    (name, address, hotel_type_id, created_by_user_id)
-    VALUES (?, ?, ?, ?)
+    (name, address, hotel_type_id, created_by_user_id, approval_status)
+    VALUES (?, ?, ?, ?, 'PENDING')
     `,
     [name, address, hotel_type_id, managerId]
   );
 };
+
 
 /* ================= ROOMS ================= */
 

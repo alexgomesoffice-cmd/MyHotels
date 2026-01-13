@@ -6,7 +6,14 @@ import {
   getPendingRooms,
   approveRejectRoom,
   getAllBookings,
-} from "./admin.controller.js";
+  getAllUsers,
+  updateUserStatus,
+  getAllHotels,
+  deleteHotel
+} 
+from "./admin.controller.js";
+
+
 
 import authMiddleware from "../auth/auth.middleware.js";
 import adminOnly from "../middlewares/adminOnly.js";
@@ -19,16 +26,59 @@ router.get("/dashboard", authMiddleware, adminOnly, getAdminDashboard);
 
 /* ================= HOTELS ================= */
 
-router.get("/hotels/pending", authMiddleware, adminOnly, getPendingHotels);
-router.post("/hotels/decision", authMiddleware, adminOnly, approveRejectHotel);
+router.get(
+  "/hotels/pending",
+  authMiddleware,
+  adminOnly,
+  getPendingHotels
+);
+
+router.post(
+  "/hotels/decision",
+  authMiddleware,
+  adminOnly,
+  approveRejectHotel
+);
 
 /* ================= ROOMS ================= */
 
-router.get("/rooms/pending", authMiddleware, adminOnly, getPendingRooms);
-router.post("/rooms/decision", authMiddleware, adminOnly, approveRejectRoom);
+router.get(
+  "/rooms/pending",
+  authMiddleware,
+  adminOnly,
+  getPendingRooms
+);
+
+router.post(
+  "/rooms/decision",
+  authMiddleware,
+  adminOnly,
+  approveRejectRoom
+);
 
 /* ================= BOOKINGS ================= */
 
 router.get("/bookings", authMiddleware, adminOnly, getAllBookings);
 
+router.get("/users", authMiddleware, adminOnly, getAllUsers);
+router.post("/users/status", authMiddleware, adminOnly, updateUserStatus);
+
+
+/* ================= HOTELS MANAGEMENT ================= */
+
+router.get(
+  "/hotels",
+  authMiddleware,
+  adminOnly,
+  getAllHotels
+);
+
+router.delete(
+  "/hotels/:hotelId",
+  authMiddleware,
+  adminOnly,
+  deleteHotel
+);
+
 export default router;
+
