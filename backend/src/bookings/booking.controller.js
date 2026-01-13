@@ -1,111 +1,65 @@
-import { pool } from "../db.js";
+import * as bookingService from "./booking.service.js";
 
-/* ================= FETCH APPROVED HOTELS ================= */
+/* ================= HOTELS ================= */
 
-export const getApprovedHotels = async () => {
-  const [rows] = await pool.query(`
-    SELECT
-      h.hotel_id,
-      h.name,
-      h.address,
-      ht.name AS hotel_type
-    FROM hotel h
-    JOIN hotel_type ht ON h.hotel_type_id = ht.hotel_type_id
-    WHERE h.approval_status = 'APPROVED'
-    ORDER BY h.created_at DESC
-  `);
-
-  return rows;
+export const getHotels = async (req, res) => {
+  try {
+    const hotels = await bookingService.getApprovedHotels();
+    res.json(hotels);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load hotels" });
+  }
 };
 
-/* ================= FETCH ROOMS BY HOTEL ================= */
+/* ================= ROOMS ================= */
 
-export const getApprovedRoomsByHotel = async (hotelId) => {
-  const [rows] = await pool.query(`
-    SELECT
-      hotel_room_details_id,
-      room_number,
-      price
-    FROM hotel_room_details
-    WHERE hotel_id = ?
-      AND approval_status = 'APPROVED'
-  `, [hotelId]);
-
-  return rows;
-};
-
-/* ================= CHECK ROOM AVAILABILITY ================= */
-
-export const isRoomAvailable = async (roomId, checkIn, checkOut) => {
-  const [rows] = await pool.query(`
-    SELECT 1
-    FROM booking b
-    JOIN hotel_room_booking hrb
-      ON b.booking_id = hrb.booking_id
-    WHERE hrb.hotel_room_details_id = ?
-      AND NOT (
-        b.check_out <= ?
-        OR b.check_in >= ?
-      )
-  `, [roomId, checkIn, checkOut]);
-
-  return rows.length === 0;
+export const getRoomsByHotel = async (req, res) => {
+  try {
+    const { hotelId } = req.params;
+    const rooms = await bookingService.getApprovedRoomsByHotel(hotelId);
+    res.json(rooms);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load rooms" });
+  }
 };
 
 /* ================= CREATE BOOKING ================= */
 
-export const createBooking = async (
-  userId,
-  roomId,
-  checkIn,
-  checkOut,
-  totalPrice
-) => {
-  const conn = await pool.getConnection();
+export const bookRoom = async (req, res) => {
+  const { room_id, check_in, check_out, total_price } = req.body;
 
   try {
-    await conn.beginTransaction();
+    const available = await bookingService.isRoomAvailable(
+      room_id,
+      check_in,
+      check_out
+    );
 
-    const [bookingResult] = await conn.query(`
-      INSERT INTO booking (user_id, check_in, check_out, total_price)
-      VALUES (?, ?, ?, ?)
-    `, [userId, checkIn, checkOut, totalPrice]);
+    if (!available) {
+      return res.status(400).json({ message: "Room is already booked" });
+    }
 
-    const bookingId = bookingResult.insertId;
+    const bookingId = await bookingService.createBooking(
+      req.user.user_id,
+      room_id,
+      check_in,
+      check_out,
+      total_price
+    );
 
-    await conn.query(`
-      INSERT INTO hotel_room_booking (booking_id, hotel_room_details_id)
-      VALUES (?, ?)
-    `, [bookingId, roomId]);
-
-    await conn.commit();
-    return bookingId;
+    res.json({ message: "Booking successful", booking_id: bookingId });
   } catch (err) {
-    await conn.rollback();
-    throw err;
-  } finally {
-    conn.release();
+    res.status(500).json({ message: "Booking failed" });
   }
 };
 
 /* ================= USER BOOKINGS ================= */
 
-export const getUserBookings = async (userId) => {
-  const [rows] = await pool.query(`
-    SELECT
-      b.booking_id,
-      b.check_in,
-      b.check_out,
-      b.total_price,
-      h.name AS hotel_name,
-      r.room_number
-    FROM booking b
-    JOIN hotel_room_booking hrb ON b.booking_id = hrb.booking_id
-    JOIN hotel_room_details r ON hrb.hotel_room_details_id = r.hotel_room_details_id
-    JOIN hotel h ON r.hotel_id = h.hotel_id
-    WHERE b.user_id = ?
-    ORDER BY b.created_at DESC
-  `, [userId]);
-
-  return rows;
+export const myBookings = async (req, res) => {
+  try {
+    const bookings = await bookingService.getUserBookings(req.user.user_id);
+    res.json(bookings);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load bookings" });
+  }
 };

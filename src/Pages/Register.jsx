@@ -11,7 +11,7 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [roleId, setRoleId] = useState(2); // default = User
+  const [roleId, setRoleId] = useState(2); 
 
   // {message part} submit handler
   const handleRegister = async (e) => {
@@ -23,7 +23,7 @@ const Register = () => {
         name,
         email,
         password,
-        roleId, // ✅ ADDED (THIS WAS MISSING)
+        roleId,
       });
 
       // {message part} redirect after success
@@ -57,10 +57,10 @@ const Register = () => {
 
           <form className="mt-6 space-y-4" onSubmit={handleRegister}>
             <div>
-              <div className="mb-3">
-                <label className="form-label">Register as</label>
+              <div className="mb-3 flex justify-center">
+                <label className="form-label">Register as : </label>
                 <select
-                  className="form-select"
+                  className="form-select text-center"
                   value={roleId}
                   onChange={(e) => setRoleId(Number(e.target.value))}
                   required
