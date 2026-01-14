@@ -7,50 +7,86 @@ import {
   isRoomAvailable,
 } from "../models/booking.model.js";
 
-//USER > CREATE BOOKING
+import { pool } from "../db.js"; 
+
+// ================= USER > CREATE BOOKING =================
+
 export const addBooking = async (req, res) => {
   try {
+    console.log("🔹 BOOKING BODY:", req.body);
+    console.log("🔹 USER FROM JWT:", req.user);
+
     const {
-      user_details_id,
-      hotel_room_details_id,
       checkin_date,
       checkout_date,
-      for_persons,
+      for_room,
       total_price,
     } = req.body;
 
-    if (
-      !user_details_id ||
-      !hotel_room_details_id ||
-      !checkin_date ||
-      !checkout_date ||
-      !for_persons ||
-      !total_price
-    ) {
-      return res.status(400).json({
-        message: "All booking fields are required",
-      });
+    const user_id = req.user?.user_id;
+
+    if (!user_id) {
+      console.error("❌ user_id missing from JWT");
+      return res.status(401).json({ message: "User not authenticated" });
     }
 
-    // CHECK ROOM AVAILABILITY 
-    const available = await isRoomAvailable(
-      hotel_room_details_id,
+    const bookingId = await createBooking(
+      user_id,
       checkin_date,
-      checkout_date
+      checkout_date,
+      for_room,
+      total_price
     );
 
-    if (!available) {
-      return res.status(409).json({
-        message: "Room is not available for selected dates",
+    res.status(201).json({
+      message: "Booking confirmed",
+      booking_id: bookingId,
+    });
+  } catch (error) {
+    console.error("❌ ADD BOOKING ERROR FULL:", error);
+    res.status(500).json({ message: "Booking failed" });
+  }
+};
+
+
+    // ✅ RESOLVE user_details_id (THIS WAS MISSING)
+    const [[userDetails]] = await pool.query(
+      `
+      SELECT user_details_id
+      FROM USER_DETAILS
+      WHERE user_id = ?
+      `,
+      [user_id]
+    );
+
+    if (!userDetails) {
+      return res.status(404).json({
+        message: "User details not found",
       });
     }
 
-    const bookingId = await createBooking({
-      user_details_id,
+    const user_details_id = userDetails.user_details_id;
+
+    // ✅ CHECK ROOM AVAILABILITY
+    const available = await isRoomAvailable({
       hotel_room_details_id,
       checkin_date,
       checkout_date,
-      for_persons,
+      for_room,
+    });
+
+    if (!available) {
+      return res.status(409).json({
+        message: "Rooms not available for selected dates",
+      });
+    }
+
+    // ✅ CREATE BOOKING (NOW CORRECT)
+    const bookingId = await createBooking({
+      user_id,
+      checkin_date,
+      checkout_date,
+      for_room,
       total_price,
     });
 
@@ -61,13 +97,13 @@ export const addBooking = async (req, res) => {
   } catch (error) {
     console.error("ADD BOOKING ERROR:", error);
     res.status(500).json({
-      message: "Failed to create booking",
-      error: error.message,
+      message: error.message || "Failed to create booking",
     });
   }
 };
 
-//USER > CANCEL OWN BOOKING
+// ================= USER > CANCEL OWN BOOKING =================
+
 export const userCancelBooking = async (req, res) => {
   try {
     const { booking_id } = req.params;
@@ -93,47 +129,44 @@ export const userCancelBooking = async (req, res) => {
     console.error("CANCEL BOOKING ERROR:", error);
     res.status(500).json({
       message: "Failed to cancel booking",
-      error: error.message,
     });
   }
 };
 
-//USER > VIEW OWN BOOKINGS
+// ================= USER > VIEW OWN BOOKINGS =================
+
 export const fetchMyBookings = async (req, res) => {
   try {
     const { user_id } = req.params;
 
     const bookings = await getBookingsByUser(user_id);
-
     res.json(bookings);
   } catch (error) {
     console.error("FETCH USER BOOKINGS ERROR:", error);
     res.status(500).json({
       message: "Failed to fetch bookings",
-      error: error.message,
     });
   }
 };
 
-//HOTEL MANAGER > VIEW
-// BOOKINGS FOR OWN HOTELS
+// ================= HOTEL MANAGER > VIEW BOOKINGS =================
+
 export const fetchHotelBookings = async (req, res) => {
   try {
     const { manager_id } = req.params;
 
     const bookings = await getBookingsByHotelManager(manager_id);
-
     res.json(bookings);
   } catch (error) {
     console.error("FETCH HOTEL BOOKINGS ERROR:", error);
     res.status(500).json({
       message: "Failed to fetch hotel bookings",
-      error: error.message,
     });
   }
 };
 
-//ADMIN > VIEW ALL BOOKINGS
+// ================= ADMIN > VIEW ALL BOOKINGS =================
+
 export const fetchAllBookings = async (req, res) => {
   try {
     const bookings = await getAllBookings();
@@ -142,46 +175,45 @@ export const fetchAllBookings = async (req, res) => {
     console.error("FETCH ALL BOOKINGS ERROR:", error);
     res.status(500).json({
       message: "Failed to fetch all bookings",
-      error: error.message,
     });
   }
 };
 
-//USER > CHECK ROOM AVAILABILITY
+// ================= USER > CHECK ROOM AVAILABILITY =================
+
 export const checkRoomAvailability = async (req, res) => {
   try {
     const {
       hotel_room_details_id,
       checkin_date,
       checkout_date,
+      for_room,
     } = req.body;
 
-    if (!hotel_room_details_id || !checkin_date || !checkout_date) {
+    if (
+      !hotel_room_details_id ||
+      !checkin_date ||
+      !checkout_date ||
+      !for_room
+    ) {
       return res.status(400).json({
         message:
-          "hotel_room_details_id, checkin_date and checkout_date are required",
+          "hotel_room_details_id, checkin_date, checkout_date and for_room are required",
       });
     }
 
-    const available = await isRoomAvailable(
+    const available = await isRoomAvailable({
       hotel_room_details_id,
       checkin_date,
-      checkout_date
-    );
+      checkout_date,
+      for_room,
+    });
 
-    if (!available) {
-      return res.json({
-        available: false,
-        message: "Room is already booked for selected dates",
-      });
-    }
-
-    res.json({ available: true });
+    res.json({ available });
   } catch (error) {
     console.error("CHECK AVAILABILITY ERROR:", error);
     res.status(500).json({
       message: "Failed to check availability",
-      error: error.message,
     });
   }
 };

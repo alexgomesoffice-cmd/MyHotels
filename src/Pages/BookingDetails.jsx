@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { createBooking } from "../data/api";
 
 import Navbar from "../Components/Navbar/Navbar";
@@ -7,8 +7,6 @@ import Footer from "../Components/Footer/Footer";
 
 const BookingDetails = () => {
   const location = useLocation();
-  const navigate = useNavigate();
-
   const { room } = location.state || {};
 
   const [checkIn, setCheckIn] = useState("");
@@ -16,17 +14,12 @@ const BookingDetails = () => {
   const [roomsCount, setRoomsCount] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   if (!room) {
     return (
       <div className="text-center mt-16">
         <p className="text-red-500 mb-4">Invalid booking session</p>
-        <button
-          onClick={() => navigate("/")}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          Go Home
-        </button>
       </div>
     );
   }
@@ -46,6 +39,7 @@ const BookingDetails = () => {
 
   const handleBooking = async () => {
     setError("");
+    setSuccess("");
 
     if (!checkIn || !checkOut) {
       setError("Please select both check-in and check-out dates");
@@ -65,18 +59,32 @@ const BookingDetails = () => {
     setLoading(true);
 
     try {
-      await createBooking({
+      const response = await createBooking({
         hotel_room_details_id: room.hotel_room_details_id,
         checkin_date: checkIn,
         checkout_date: checkOut,
-        rooms_count: roomsCount,
+        for_room: roomsCount,
         total_price: totalPrice,
       });
 
-      navigate("/profile");
+      // ✅ Defensive check
+      if (!response || !response.message) {
+        throw new Error("Invalid booking response");
+      }
+
+      setSuccess(response.message);
+
+      // 🔄 Reset form
+      setCheckIn("");
+      setCheckOut("");
+      setRoomsCount(1);
     } catch (err) {
+      console.error("BOOKING ERROR:", err);
+
       setError(
-        err.response?.data?.message || "Failed to confirm booking"
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to confirm booking"
       );
     } finally {
       setLoading(false);
@@ -87,16 +95,19 @@ const BookingDetails = () => {
     <>
       <Navbar />
 
-      {/* CENTERED – NO SCROLL */}
-      <div className="flex justify-center items-center py-6">
+      <div className="flex justify-center items-center min-h-[70vh]">
         <div className="max-w-xl w-full px-4">
           <h1 className="text-2xl font-bold mb-4 text-center">
             Confirm Your Booking
           </h1>
 
           {error && (
-            <p className="text-red-500 mb-3 text-center">
-              {error}
+            <p className="text-red-500 mb-3 text-center">{error}</p>
+          )}
+
+          {success && (
+            <p className="text-green-600 mb-3 text-center font-semibold">
+              {success}
             </p>
           )}
 

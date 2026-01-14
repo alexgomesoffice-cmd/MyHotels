@@ -17,15 +17,18 @@ const HotelDescription = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch hotel details
+        setLoading(true);
+        setError("");
+
+        // ✅ Fetch hotel details (this route EXISTS)
         const hotelRes = await api.get(`/hotels/${id}`);
         setHotel(hotelRes.data);
 
-        // Fetch rooms for hotel
-        const roomsRes = await fetchRoomsByHotel(id);
-        setRooms(roomsRes);
+        // ✅ Fetch rooms via BOOKINGS route
+        const roomsData = await fetchRoomsByHotel(id);
+        setRooms(roomsData || []);
       } catch (err) {
-        console.error(err);
+        console.error("HOTEL DESCRIPTION ERROR:", err);
         setError("Failed to load hotel details");
       } finally {
         setLoading(false);
@@ -40,7 +43,11 @@ const HotelDescription = () => {
   }
 
   if (error) {
-    return <p className="text-center mt-20 text-red-500">{error}</p>;
+    return (
+      <p className="text-center mt-20 text-red-500">
+        {error}
+      </p>
+    );
   }
 
   if (!hotel) {
@@ -59,7 +66,9 @@ const HotelDescription = () => {
           {hotel.description || "No description provided by the manager."}
         </p>
 
-        <h2 className="text-2xl font-semibold mb-4">Available Rooms</h2>
+        <h2 className="text-2xl font-semibold mb-4">
+          Available Rooms
+        </h2>
 
         {/* ROOMS */}
         {rooms.length === 0 ? (
@@ -74,7 +83,9 @@ const HotelDescription = () => {
                 className="border rounded-lg p-4 flex justify-between items-center"
               >
                 <div>
-                  <p className="font-semibold">{room.room_type}</p>
+                  <p className="font-semibold">
+                    {room.room_type}
+                  </p>
                   <p className="text-sm text-gray-500">
                     Room #{room.room_number}
                   </p>
@@ -82,7 +93,7 @@ const HotelDescription = () => {
 
                 <div className="text-right">
                   <p className="text-lg font-bold">
-                    ${room.price} / night
+                    ৳{room.price} / night
                   </p>
                   <button
                     onClick={() =>
