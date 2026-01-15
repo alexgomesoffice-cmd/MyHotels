@@ -1,3 +1,4 @@
+// backend/src/routes/booking.routes.js
 import { Router } from "express";
 import {
   addBooking,
@@ -12,31 +13,24 @@ import verifyToken from "../auth/auth.middleware.js";
 
 const router = Router();
 
-/* ================= USER > CREATE BOOKING ================= */
+console.log("✅ booking.routes.js LOADED");
 
 // Protected booking creation
 router.post("/book", verifyToken, addBooking);
 
-/* ================= USER > CHECK AVAILABILITY ================= */
-
-// Public or protected — keeping as-is
+// Check availability
 router.post("/check-availability", checkRoomAvailability);
 
-/* ================= USER > CANCEL OWN BOOKING ================= */
-
+// Cancel booking
 router.patch("/cancel/:booking_id", verifyToken, userCancelBooking);
 
-/* ================= USER > VIEW OWN BOOKINGS ================= */
-
-// user_id comes from JWT, NOT params
+// User's bookings (user_id from JWT)
 router.get("/user", verifyToken, fetchMyBookings);
 
-/* ================= HOTEL MANAGER > VIEW BOOKINGS ================= */
-
+// Manager bookings
 router.get("/manager/:manager_id", verifyToken, fetchHotelBookings);
 
-/* ================= ADMIN > VIEW ALL BOOKINGS ================= */
-
+// Admin all bookings
 router.get("/admin", verifyToken, fetchAllBookings);
 
 export default router;

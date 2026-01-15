@@ -2,97 +2,118 @@ import { pool } from "../db.js";
 
 /* ================= ADMIN DASHBOARD ================= */
 
-// Dashboard summary stats for admin
 export const getDashboardStats = async () => {
-  const [[hotels]] = await pool.query(
-    "SELECT COUNT(*) total FROM hotel"
+  const [[totalHotels]] = await pool.query(
+    `SELECT COUNT(*) AS count FROM hotel`
   );
 
   const [[pendingHotels]] = await pool.query(
-    "SELECT COUNT(*) total FROM hotel WHERE approval_status = 'PENDING'"
+    `SELECT COUNT(*) AS count FROM hotel WHERE approval_status = 'PENDING'`
   );
 
-  const [[rooms]] = await pool.query(
-    "SELECT COUNT(*) total FROM hotel_room_details"
+  const [[totalRooms]] = await pool.query(
+    `SELECT COUNT(*) AS count FROM hotel_room_details`
   );
 
   const [[pendingRooms]] = await pool.query(
-    "SELECT COUNT(*) total FROM hotel_room_details WHERE approval_status = 'PENDING'"
+    `SELECT COUNT(*) AS count
+     FROM hotel_room_details
+     WHERE approval_status = 'PENDING'`
   );
 
-  const [[bookings]] = await pool.query(
-    "SELECT COUNT(*) total FROM booking"
+  const [[totalBookings]] = await pool.query(
+    `SELECT COUNT(*) AS count FROM booking`
   );
 
   return {
-    hotels: hotels.total,
-    pendingHotels: pendingHotels.total,
-    rooms: rooms.total,
-    pendingRooms: pendingRooms.total,
-    bookings: bookings.total,
+    totalHotels: totalHotels.count,
+    pendingHotels: pendingHotels.count,
+    totalRooms: totalRooms.count,
+    pendingRooms: pendingRooms.count,
+    totalBookings: totalBookings.count,
   };
 };
 
 /* ================= HOTELS ================= */
 
-// Fetch all pending hotels
 export const getPendingHotels = async () => {
   const [rows] = await pool.query(`
     SELECT
       h.hotel_id,
       h.name,
       h.address,
-      ht.name AS hotel_type,
-      u.name AS manager_name,
-      h.created_at
+      h.created_at,
+      u.name AS created_by,
+      ht.name AS hotel_type
     FROM hotel h
-    JOIN hotel_type ht ON h.hotel_type_id = ht.hotel_type_id
     JOIN user u ON h.created_by_user_id = u.user_id
-    WHERE h.approval_status = 'pending'
+    JOIN hotel_type ht ON h.hotel_type_id = ht.hotel_type_id
+    WHERE h.approval_status = 'PENDING'
     ORDER BY h.created_at DESC
   `);
+
   return rows;
 };
 
-// Approve / Reject hotel
-export const updateHotelStatus = async (hotelId, status, adminId) => {
-  const normalizedStatus = status.toLowerCase(); // 'APPROVED' → 'approved'
+export const updateHotelStatus = async (hotel_id, status, admin_id) => {
+  if (!["APPROVED", "REJECTED"].includes(status)) {
+    throw new Error("Invalid hotel status");
+  }
 
-  await pool.query(`
+  const [result] = await pool.query(
+    `
     UPDATE hotel
     SET approval_status = ?, approved_by_admin_id = ?
     WHERE hotel_id = ?
-  `, [normalizedStatus, adminId, hotelId]);
+    `,
+    [status, admin_id, hotel_id]
+  );
+
+  if (result.affectedRows === 0) {
+    throw new Error("Hotel not found");
+  }
 };
 
 /* ================= ROOMS ================= */
 
-// Fetch pending rooms
 export const getPendingRooms = async () => {
   const [rows] = await pool.query(`
     SELECT
       r.hotel_room_details_id,
       r.room_number,
       r.price,
+      r.created_at,
       h.name AS hotel_name,
-      t.name AS room_type,
-      u.name AS manager_name
+      rt.name AS room_type,
+      u.name AS created_by
     FROM hotel_room_details r
     JOIN hotel h ON r.hotel_id = h.hotel_id
-    JOIN hotel_room_type t ON r.hotel_room_type_id = t.hotel_room_type_id
+    JOIN hotel_room_type rt ON r.hotel_room_type_id = rt.hotel_room_type_id
     JOIN user u ON r.created_by_user_id = u.user_id
     WHERE r.approval_status = 'PENDING'
+    ORDER BY r.created_at DESC
   `);
+
   return rows;
 };
 
-// Approve / Reject room
-export const updateRoomStatus = async (roomId, status, adminId) => {
-  await pool.query(`
+export const updateRoomStatus = async (room_id, status, admin_id) => {
+  if (!["APPROVED", "REJECTED"].includes(status)) {
+    throw new Error("Invalid room status");
+  }
+
+  const [result] = await pool.query(
+    `
     UPDATE hotel_room_details
     SET approval_status = ?, approved_by_admin_id = ?
     WHERE hotel_room_details_id = ?
-  `, [status, adminId, roomId]);
+    `,
+    [status, admin_id, room_id]
+  );
+
+  if (result.affectedRows === 0) {
+    throw new Error("Room not found");
+  }
 };
 
 /* ================= BOOKINGS ================= */
@@ -101,85 +122,88 @@ export const getAllBookings = async () => {
   const [rows] = await pool.query(`
     SELECT
       b.booking_id,
-      b.check_in,
-      b.check_out,
+      b.checkin_date,
+      b.checkout_date,
+      b.for_room,
       b.total_price,
-      h.name AS hotel_name,
-      r.room_number,
-      u.name AS customer_name
+      b.status,
+      u.name AS user_name,
+      u.email AS user_email,
+      h.name AS hotel_name
     FROM booking b
+    JOIN user_details ud ON b.user_details_id = ud.user_details_id
+    JOIN user u ON ud.user_id = u.user_id
     JOIN hotel_room_booking hrb ON b.booking_id = hrb.booking_id
     JOIN hotel_room_details r ON hrb.hotel_room_details_id = r.hotel_room_details_id
     JOIN hotel h ON r.hotel_id = h.hotel_id
-    JOIN user u ON b.user_id = u.user_id
+    GROUP BY b.booking_id
     ORDER BY b.created_at DESC
   `);
+
   return rows;
 };
 
 /* ================= USERS ================= */
 
-// Fetch all users
 export const getAllUsers = async () => {
   const [rows] = await pool.query(`
     SELECT
-      user_id,
-      name,
-      email,
-      role_id,
-      is_blocked,
-      created_at
-    FROM user
-    ORDER BY created_at DESC
+      u.user_id,
+      u.name,
+      u.email,
+      r.name AS role,
+      u.is_blocked,
+      u.created_at
+    FROM user u
+    JOIN role r ON u.role_id = r.role_id
+    ORDER BY u.created_at DESC
   `);
 
   return rows;
 };
 
-// Block / Unblock user
-export const updateUserStatus = async (userId, isBlocked) => {
-  await pool.query(
+export const updateUserStatus = async (user_id, is_blocked) => {
+  const [result] = await pool.query(
     `
     UPDATE user
     SET is_blocked = ?
     WHERE user_id = ?
-  `,
-    [isBlocked, userId]
+    `,
+    [is_blocked, user_id]
   );
+
+  if (result.affectedRows === 0) {
+    throw new Error("User not found");
+  }
 };
 
+/* ================= HOTELS MANAGEMENT ================= */
 
-/* ================= HOTELS (ADMIN LIST) ================= */
-
-// Fetch all hotels (ADMIN)
 export const getAllHotels = async () => {
   const [rows] = await pool.query(`
     SELECT
       h.hotel_id,
       h.name,
       h.address,
-      ht.name AS hotel_type,
-      h.approval_status
+      h.approval_status,
+      h.created_at,
+      u.name AS created_by,
+      ht.name AS hotel_type
     FROM hotel h
+    JOIN user u ON h.created_by_user_id = u.user_id
     JOIN hotel_type ht ON h.hotel_type_id = ht.hotel_type_id
-    WHERE h.approval_status = 'approved'
     ORDER BY h.created_at DESC
   `);
 
   return rows;
 };
 
-// Delete hotel (admin)
 export const deleteHotel = async (hotelId) => {
-  // Delete rooms first (FK safety)
   await pool.query(
-    "DELETE FROM hotel_room_details WHERE hotel_id = ?",
-    [hotelId]
-  );
-
-  // Delete hotel
-  await pool.query(
-    "DELETE FROM hotel WHERE hotel_id = ?",
+    `
+    DELETE FROM hotel
+    WHERE hotel_id = ?
+    `,
     [hotelId]
   );
 };

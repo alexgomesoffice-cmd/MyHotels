@@ -4,18 +4,18 @@ import { fetchAdminDashboard } from "../../data/api";
 const StatCard = ({ title, value }) => {
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-gray-500 text-sm mb-2">
-        {title}
-      </h2>
-      <p className="text-3xl font-bold text-gray-800">
-        {value}
-      </p>
+      <h2 className="text-gray-500 text-sm mb-2">{title}</h2>
+      <p className="text-3xl font-bold text-gray-800">{value}</p>
     </div>
   );
 };
 
 const AdminDashboard = () => {
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState({
+    pendingHotels: 0,
+    pendingRooms: 0,
+    totalBookings: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -23,7 +23,12 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
       const data = await fetchAdminDashboard();
-      setStats(data);
+
+      setStats({
+        pendingHotels: data?.pendingHotels ?? 0,
+        pendingRooms: data?.pendingRooms ?? 0,
+        totalBookings: data?.totalBookings ?? 0,
+      });
     } catch (err) {
       console.error("ADMIN DASHBOARD ERROR:", err);
       setError("Failed to load dashboard data");
@@ -61,7 +66,7 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <StatCard
           title="Total Hotels"
-          value={stats.hotels}
+          value="—"
         />
 
         <StatCard
@@ -71,7 +76,7 @@ const AdminDashboard = () => {
 
         <StatCard
           title="Total Rooms"
-          value={stats.rooms}
+          value="—"
         />
 
         <StatCard
@@ -81,7 +86,7 @@ const AdminDashboard = () => {
 
         <StatCard
           title="Total Bookings"
-          value={stats.bookings}
+          value={stats.totalBookings}
         />
       </div>
     </div>

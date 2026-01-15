@@ -29,7 +29,7 @@ const PendingHotels = () => {
   const handleAction = async (hotel_id, status) => {
     try {
       await decideHotel(hotel_id, status);
-      loadHotels(); // refresh list
+      loadHotels();
     } catch (err) {
       console.error("UPDATE HOTEL STATUS ERROR:", err);
       alert("Failed to update hotel status");
@@ -76,7 +76,7 @@ const PendingHotels = () => {
                 <td className="p-3">{hotel.address}</td>
                 <td className="p-3">{hotel.hotel_type}</td>
                 <td className="p-3">
-                  {hotel.manager_name}
+                  {hotel.created_by}
                 </td>
                 <td className="p-3 space-x-2">
                   <button

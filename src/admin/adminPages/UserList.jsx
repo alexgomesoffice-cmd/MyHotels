@@ -29,7 +29,8 @@ const Users = () => {
   }, []);
 
   const handleToggle = async (user) => {
-    const newBlockedState = user.is_blocked ? 0 : 1;
+    const isBlocked = Number(user.is_blocked) === 1;
+    const newBlockedState = isBlocked ? 0 : 1;
 
     if (
       !window.confirm(
@@ -72,51 +73,59 @@ const Users = () => {
           </thead>
 
           <tbody>
-            {users.map((user) => (
-              <tr key={user.user_id} className="border-t">
-                <td className="p-3">{user.name}</td>
-                <td className="p-3">{user.email}</td>
+            {users.map((user) => {
+              const isBlocked = Number(user.is_blocked) === 1;
 
-                <td className="p-3">
-                  <span className="px-2 py-1 rounded bg-blue-100 text-blue-700">
-                    {roleMap[user.role_id] || "Unknown"}
-                  </span>
-                </td>
+              return (
+                <tr key={user.user_id} className="border-t">
+                  <td className="p-3">
+                    {user.first_name} {user.last_name}
+                  </td>
 
-                <td className="p-3">
-                  <span
-                    className={`px-2 py-1 rounded text-white ${
-                      user.is_blocked
-                        ? "bg-red-600"
-                        : "bg-green-600"
-                    }`}
-                  >
-                    {user.is_blocked ? "Blocked" : "Active"}
-                  </span>
-                </td>
+                  <td className="p-3">{user.email}</td>
 
-                <td className="p-3">
-                  {new Date(user.created_at).toLocaleDateString()}
-                </td>
+                  <td className="p-3">
+                    <span className="px-2 py-1 rounded bg-blue-100 text-blue-700">
+                      {roleMap[user.role_id] || "Unknown"}
+                    </span>
+                  </td>
 
-                <td className="p-3">
-                  <button
-                    onClick={() => handleToggle(user)}
-                    className={`px-3 py-1 rounded text-white ${
-                      user.is_blocked
-                        ? "bg-green-600 hover:bg-green-700"
-                        : "bg-red-600 hover:bg-red-700"
-                    }`}
-                  >
-                    {user.is_blocked ? "Unblock" : "Block"}
-                  </button>
-                </td>
-              </tr>
-            ))}
+                  <td className="p-3">
+                    <span
+                      className={`px-2 py-1 rounded text-white ${
+                        isBlocked ? "bg-red-600" : "bg-green-600"
+                      }`}
+                    >
+                      {isBlocked ? "Blocked" : "Active"}
+                    </span>
+                  </td>
+
+                  <td className="p-3">
+                    {new Date(user.created_at).toLocaleDateString()}
+                  </td>
+
+                  <td className="p-3">
+                    <button
+                      onClick={() => handleToggle(user)}
+                      className={`px-3 py-1 rounded text-white ${
+                        isBlocked
+                          ? "bg-green-600 hover:bg-green-700"
+                          : "bg-red-600 hover:bg-red-700"
+                      }`}
+                    >
+                      {isBlocked ? "Unblock" : "Block"}
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
 
             {users.length === 0 && (
               <tr>
-                <td colSpan="6" className="p-4 text-center text-gray-500">
+                <td
+                  colSpan="6"
+                  className="p-4 text-center text-gray-500"
+                >
                   No users found
                 </td>
               </tr>

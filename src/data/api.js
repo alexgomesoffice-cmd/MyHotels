@@ -1,3 +1,4 @@
+// src/data/api.js
 import axios from "axios";
 
 const API_BASE_URL = "http://localhost:5000/api";
@@ -9,7 +10,7 @@ const api = axios.create({
   },
 });
 
-// Attach token automatically
+// Attach token automatically (admin OR user)
 api.interceptors.request.use(
   (config) => {
     const adminToken = localStorage.getItem("adminToken");
@@ -33,8 +34,13 @@ export const fetchAllHotels = async () => {
   return response.data;
 };
 
+// Alias to avoid breaking existing imports
+export const getHotels = fetchAllHotels;
+
 export const searchHotels = async (query) => {
-  const response = await api.get(`/hotels/search?q=${query}`);
+  const response = await api.get(
+    `/hotels/search?q=${encodeURIComponent(query)}`
+  );
   return response.data;
 };
 
@@ -50,11 +56,6 @@ export const updateMyProfile = async (data) => {
   return response.data;
 };
 
-export const getHotels = async () => {
-  const response = await api.get("/hotels");
-  return response.data;
-};
-
 /* ================= MANAGER ================= */
 
 export const fetchManagerDashboard = async () => {
@@ -64,11 +65,19 @@ export const fetchManagerDashboard = async () => {
 
 /* ================= ADMIN ================= */
 
+export const fetchAdminDashboard = async () => {
+  const response = await api.get("/admin/dashboard");
+
+  // supports BOTH formats safely
+  return response.data?.payload ?? response.data;
+};
+// Pending hotels
 export const fetchPendingHotels = async () => {
   const response = await api.get("/admin/hotels/pending");
   return response.data;
 };
 
+// Approve / Reject hotel
 export const decideHotel = async (hotel_id, status) => {
   const response = await api.post("/admin/hotels/decision", {
     hotel_id,
@@ -77,25 +86,22 @@ export const decideHotel = async (hotel_id, status) => {
   return response.data;
 };
 
+// Pending rooms
 export const fetchPendingRooms = async () => {
   const response = await api.get("/admin/rooms/pending");
   return response.data;
 };
 
+// Approve / Reject room (CLEANED)
 export const decideRoom = async (roomId, status) => {
   const response = await api.post("/admin/rooms/decision", {
     room_id: roomId,
-    approval_status: status,
-    status: status,
+    status,
   });
   return response.data;
 };
 
-export const fetchAdminDashboard = async () => {
-  const response = await api.get("/admin/dashboard");
-  return response.data;
-};
-
+// Users
 export const fetchAllUsers = async () => {
   const response = await api.get("/admin/users");
   return response.data;
@@ -109,6 +115,7 @@ export const toggleUserStatus = async (userId, isBlocked) => {
   return response.data;
 };
 
+// Hotels management
 export const fetchAllAdminHotels = async () => {
   const response = await api.get("/admin/hotels");
   return response.data;
@@ -121,16 +128,13 @@ export const deleteHotel = async (hotelId) => {
 
 /* ================= BOOKINGS ================= */
 
-export const fetchApprovedHotels = async () => {
-  const res = await api.get("/bookings/hotels");
-  return res.data;
-};
+// Alias to prevent frontend break (approved hotels come from /hotels)
+export const fetchApprovedHotels = fetchAllHotels;
 
 export const fetchRoomsByHotel = async (hotelId) => {
   const res = await api.get(`/rooms/hotel/${hotelId}`);
   return res.data;
 };
-
 
 export const createBooking = async (data) => {
   const res = await api.post("/bookings/book", data);
@@ -138,7 +142,7 @@ export const createBooking = async (data) => {
 };
 
 export const fetchMyBookings = async () => {
-  const res = await api.get("/bookings/my-bookings");
+  const res = await api.get("/bookings/user");
   return res.data;
 };
 

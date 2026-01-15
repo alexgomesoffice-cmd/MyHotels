@@ -1,3 +1,4 @@
+// src/Pages/BookingDetails.jsx
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { createBooking } from "../data/api";
@@ -7,6 +8,7 @@ import Footer from "../Components/Footer/Footer";
 
 const BookingDetails = () => {
   const location = useLocation();
+
   const { room } = location.state || {};
 
   const [checkIn, setCheckIn] = useState("");
@@ -34,7 +36,7 @@ const BookingDetails = () => {
 
   const totalPrice =
     totalNights > 0
-      ? totalNights * room.price * roomsCount
+      ? totalNights * Number(room.price || room.room_price || 0) * roomsCount
       : 0;
 
   const handleBooking = async () => {
@@ -59,33 +61,29 @@ const BookingDetails = () => {
     setLoading(true);
 
     try {
-      const response = await createBooking({
-        hotel_room_details_id: room.hotel_room_details_id,
+      const payload = {
+        hotel_room_details_id: room.hotel_room_details_id || room.room_id || room.id,
         checkin_date: checkIn,
         checkout_date: checkOut,
         for_room: roomsCount,
         total_price: totalPrice,
-      });
+      };
 
-      // ✅ Defensive check
-      if (!response || !response.message) {
-        throw new Error("Invalid booking response");
-      }
+      await createBooking(payload);
 
-      setSuccess(response.message);
-
-      // 🔄 Reset form
+      setSuccess("Booking confirmed successfully!");
+      // reset form
       setCheckIn("");
       setCheckOut("");
       setRoomsCount(1);
-    } catch (err) {
-      console.error("BOOKING ERROR:", err);
 
+      // Optionally navigate to profile or refresh bookings:
+      // navigate("/profile");
+    } catch (err) {
       setError(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Failed to confirm booking"
+        err.response?.data?.message || err.message || "Failed to confirm booking"
       );
+      console.error("BOOKING ERROR:", err);
     } finally {
       setLoading(false);
     }
@@ -102,7 +100,9 @@ const BookingDetails = () => {
           </h1>
 
           {error && (
-            <p className="text-red-500 mb-3 text-center">{error}</p>
+            <p className="text-red-500 mb-3 text-center">
+              {error}
+            </p>
           )}
 
           {success && (
@@ -113,11 +113,11 @@ const BookingDetails = () => {
 
           <div className="bg-white shadow rounded-lg p-5 space-y-4">
             <p>
-              <strong>Room Type:</strong> {room.room_type}
+              <strong>Room Type:</strong> {room.room_type || room.name}
             </p>
 
             <p>
-              <strong>Price / Night:</strong> ৳{room.price}
+              <strong>Price / Night:</strong> ৳{room.price || room.room_price || 0}
             </p>
 
             <div>
@@ -152,9 +152,7 @@ const BookingDetails = () => {
               </label>
               <select
                 value={roomsCount}
-                onChange={(e) =>
-                  setRoomsCount(Number(e.target.value))
-                }
+                onChange={(e) => setRoomsCount(Number(e.target.value))}
                 className="border border-gray-300 rounded px-3 py-2 w-full"
               >
                 {[1, 2, 3, 4, 5].map((num) => (

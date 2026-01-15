@@ -1,108 +1,153 @@
+// backend/src/models/booking.model.js
 import { pool } from "../db.js";
 
-// ================= CREATE BOOKING (AUTO CONFIRMED) =================
-console.log("🔹 INSERT BOOKING PARAMS:", {
-  user_id,
-  checkin_date,
-  checkout_date,
-  for_room,
-  total_price,
-});
+/* ================= CREATE BOOKING (AUTO CONFIRMED) =================
+   createBooking({
+     user_details_id,
+     hotel_room_details_id,
+     checkin_date,
+     checkout_date,
+     for_room,
+     total_price
+   })
+*/
 export async function createBooking({
   user_details_id,
+  hotel_room_details_id,
   checkin_date,
   checkout_date,
   for_room,
   total_price,
-  hotel_room_details_id,
 }) {
   const connection = await pool.getConnection();
-
   try {
     await connection.beginTransaction();
 
-    // 1️⃣ TOTAL ROOMS FOR THIS ROOM TYPE
-    const [[roomCount]] = await connection.query(
+    // 1) get hotel_id and room_type for provided hotel_room_details_id
+    const [[roomInfo]] = await connection.query(
       `
-      SELECT COUNT(*) AS total_rooms
-      FROM HOTEL_ROOM_DETAILS
+      SELECT hotel_id, hotel_room_type_id, approval_status
+      FROM hotel_room_details
       WHERE hotel_room_details_id = ?
       `,
       [hotel_room_details_id]
     );
 
-    if (!roomCount || roomCount.total_rooms === 0) {
-      throw new Error("Room not found");
+    if (!roomInfo) {
+      throw new Error("Requested room not found");
     }
 
-    // 2️⃣ ALREADY BOOKED ROOMS (DATE OVERLAP)
-    const [[booked]] = await connection.query(
+    if (roomInfo.approval_status && roomInfo.approval_status !== "APPROVED") {
+      throw new Error("Requested room is not approved");
+    }
+
+    const hotelId = roomInfo.hotel_id;
+    const hotelRoomTypeId = roomInfo.hotel_room_type_id;
+
+    // 2) total physical rooms for that hotel & room-type (approved ones)
+    const [[roomCountRow]] = await connection.query(
+      `
+      SELECT COUNT(*) AS total_rooms
+      FROM hotel_room_details
+      WHERE hotel_id = ?
+        AND hotel_room_type_id = ?
+        AND (approval_status IS NULL OR approval_status = 'APPROVED')
+      `,
+      [hotelId, hotelRoomTypeId]
+    );
+    const totalRooms = Number(roomCountRow?.total_rooms ?? 0);
+
+    if (totalRooms <= 0) {
+      throw new Error("No rooms of the requested type available in this hotel");
+    }
+
+    // 3) count already booked rooms for overlapping confirmed bookings
+    const [[bookedRow]] = await connection.query(
       `
       SELECT COALESCE(SUM(b.for_room), 0) AS booked_rooms
-      FROM BOOKING b
-      JOIN HOTEL_ROOM_BOOKING hrb
-        ON b.booking_id = hrb.booking_id
-      WHERE hrb.hotel_room_details_id = ?
+      FROM booking b
+      JOIN hotel_room_booking hrb ON b.booking_id = hrb.booking_id
+      JOIN hotel_room_details r ON hrb.hotel_room_details_id = r.hotel_room_details_id
+      WHERE r.hotel_id = ?
+        AND r.hotel_room_type_id = ?
         AND b.status = 'CONFIRMED'
-        AND b.checkin_date < ?
-        AND b.checkout_date > ?
+        AND NOT (b.checkout_date <= ? OR b.checkin_date >= ?)
       `,
-      [hotel_room_details_id, checkout_date, checkin_date]
+      [hotelId, hotelRoomTypeId, checkin_date, checkout_date]
     );
+    const bookedRooms = Number(bookedRow?.booked_rooms ?? 0);
 
-    const availableRooms =
-      roomCount.total_rooms - booked.booked_rooms;
-
+    const availableRooms = totalRooms - bookedRooms;
     if (availableRooms < for_room) {
-      throw new Error(
-        `Only ${availableRooms} room(s) available for selected dates`
-      );
+      throw new Error(`Only ${availableRooms} room(s) available for selected dates`);
     }
 
-    // 3️⃣ INSERT INTO BOOKING
+    // 4) insert booking row
     const [bookingResult] = await connection.query(
       `
-      INSERT INTO BOOKING
-      (user_details_id, checkin_date, checkout_date, for_room, total_price, status)
+      INSERT INTO booking
+        (user_details_id, checkin_date, checkout_date, for_room, total_price, status)
       VALUES (?, ?, ?, ?, ?, 'CONFIRMED')
       `,
-      [
-        user_details_id,
-        checkin_date,
-        checkout_date,
-        for_room,
-        total_price,
-      ]
+      [user_details_id, checkin_date, checkout_date, for_room, total_price]
     );
-
     const booking_id = bookingResult.insertId;
 
-    // 4️⃣ LINK BOOKING TO ROOM
-    await connection.query(
+    // 5) select specific available room ids to link to booking
+    const [availableRoomsRows] = await connection.query(
       `
-      INSERT INTO HOTEL_ROOM_BOOKING
-      (booking_id, hotel_room_details_id)
-      VALUES (?, ?)
+      SELECT r.hotel_room_details_id
+      FROM hotel_room_details r
+      LEFT JOIN hotel_room_booking hrb ON r.hotel_room_details_id = hrb.hotel_room_details_id
+      LEFT JOIN booking b ON hrb.booking_id = b.booking_id AND b.status = 'CONFIRMED'
+      WHERE r.hotel_id = ?
+        AND r.hotel_room_type_id = ?
+        AND (r.approval_status IS NULL OR r.approval_status = 'APPROVED')
+      GROUP BY r.hotel_room_details_id
+      HAVING SUM(
+        CASE
+          WHEN b.booking_id IS NULL THEN 0
+          WHEN NOT (b.checkout_date <= ? OR b.checkin_date >= ?) THEN 1
+          ELSE 0
+        END
+      ) = 0
+      LIMIT ?
       `,
-      [booking_id, hotel_room_details_id]
+      [hotelId, hotelRoomTypeId, checkin_date, checkout_date, for_room]
     );
+
+    if (!availableRoomsRows || availableRoomsRows.length < for_room) {
+      throw new Error("Unable to reserve specific rooms — please try again");
+    }
+
+    // 6) link each selected room to booking
+    const insertPromises = availableRoomsRows.map((r) =>
+      connection.query(
+        `
+        INSERT INTO hotel_room_booking
+          (booking_id, hotel_room_details_id)
+        VALUES (?, ?)
+        `,
+        [booking_id, r.hotel_room_details_id]
+      )
+    );
+    await Promise.all(insertPromises);
 
     await connection.commit();
     return booking_id;
-  } catch (error) {
+  } catch (err) {
     await connection.rollback();
-    throw error;
+    throw err;
   } finally {
     connection.release();
   }
 }
 
-// ================= CANCEL BOOKING =================
-
+/* ================= CANCEL BOOKING ================= */
 export async function cancelBooking({ booking_id }) {
   const [result] = await pool.query(
     `
-    UPDATE BOOKING
+    UPDATE booking
     SET status = 'CANCELLED'
     WHERE booking_id = ?
     `,
@@ -112,8 +157,7 @@ export async function cancelBooking({ booking_id }) {
   return result.affectedRows;
 }
 
-// ================= USER > VIEW OWN BOOKINGS =================
-
+/* ================= USER > VIEW OWN BOOKINGS ================= */
 export async function getBookingsByUser(user_id) {
   const [rows] = await pool.query(
     `
@@ -126,12 +170,12 @@ export async function getBookingsByUser(user_id) {
       b.status,
       h.name AS hotel_name,
       r.room_number,
-      r.price
-    FROM BOOKING b
-    JOIN USER_DETAILS ud ON b.user_details_id = ud.user_details_id
-    JOIN HOTEL_ROOM_BOOKING hrb ON b.booking_id = hrb.booking_id
-    JOIN HOTEL_ROOM_DETAILS r ON hrb.hotel_room_details_id = r.hotel_room_details_id
-    JOIN HOTEL h ON r.hotel_id = h.hotel_id
+      r.price AS room_price
+    FROM booking b
+    JOIN user_details ud ON b.user_details_id = ud.user_details_id
+    JOIN hotel_room_booking hrb ON b.booking_id = hrb.booking_id
+    JOIN hotel_room_details r ON hrb.hotel_room_details_id = r.hotel_room_details_id
+    JOIN hotel h ON r.hotel_id = h.hotel_id
     WHERE ud.user_id = ?
     ORDER BY b.created_at DESC
     `,
@@ -141,8 +185,7 @@ export async function getBookingsByUser(user_id) {
   return rows;
 }
 
-// ================= HOTEL MANAGER > VIEW BOOKINGS =================
-
+/* ================= HOTEL MANAGER > VIEW BOOKINGS ================= */
 export async function getBookingsByHotelManager(manager_id) {
   const [rows] = await pool.query(
     `
@@ -155,10 +198,10 @@ export async function getBookingsByHotelManager(manager_id) {
       b.status,
       h.name AS hotel_name,
       r.room_number
-    FROM BOOKING b
-    JOIN HOTEL_ROOM_BOOKING hrb ON b.booking_id = hrb.booking_id
-    JOIN HOTEL_ROOM_DETAILS r ON hrb.hotel_room_details_id = r.hotel_room_details_id
-    JOIN HOTEL h ON r.hotel_id = h.hotel_id
+    FROM booking b
+    JOIN hotel_room_booking hrb ON b.booking_id = hrb.booking_id
+    JOIN hotel_room_details r ON hrb.hotel_room_details_id = r.hotel_room_details_id
+    JOIN hotel h ON r.hotel_id = h.hotel_id
     WHERE h.created_by_user_id = ?
     ORDER BY b.created_at DESC
     `,
@@ -168,8 +211,7 @@ export async function getBookingsByHotelManager(manager_id) {
   return rows;
 }
 
-// ================= ADMIN > VIEW ALL BOOKINGS =================
-
+/* ================= ADMIN > VIEW ALL BOOKINGS ================= */
 export async function getAllBookings() {
   const [rows] = await pool.query(
     `
@@ -182,12 +224,12 @@ export async function getAllBookings() {
       b.status,
       u.name AS user_name,
       h.name AS hotel_name
-    FROM BOOKING b
-    JOIN USER_DETAILS ud ON b.user_details_id = ud.user_details_id
-    JOIN USER u ON ud.user_id = u.user_id
-    JOIN HOTEL_ROOM_BOOKING hrb ON b.booking_id = hrb.booking_id
-    JOIN HOTEL_ROOM_DETAILS r ON hrb.hotel_room_details_id = r.hotel_room_details_id
-    JOIN HOTEL h ON r.hotel_id = h.hotel_id
+    FROM booking b
+    JOIN user_details ud ON b.user_details_id = ud.user_details_id
+    JOIN user u ON ud.user_id = u.user_id
+    JOIN hotel_room_booking hrb ON b.booking_id = hrb.booking_id
+    JOIN hotel_room_details r ON hrb.hotel_room_details_id = r.hotel_room_details_id
+    JOIN hotel h ON r.hotel_id = h.hotel_id
     ORDER BY b.created_at DESC
     `
   );
@@ -195,38 +237,54 @@ export async function getAllBookings() {
   return rows;
 }
 
-// ================= CHECK ROOM AVAILABILITY =================
-
+/* ================= CHECK ROOM AVAILABILITY ================= */
 export const isRoomAvailable = async ({
   hotel_room_details_id,
   checkin_date,
   checkout_date,
   for_room,
 }) => {
-  const [[roomCount]] = await pool.query(
+  const [[roomInfo]] = await pool.query(
     `
-    SELECT COUNT(*) AS total_rooms
-    FROM HOTEL_ROOM_DETAILS
+    SELECT hotel_id, hotel_room_type_id
+    FROM hotel_room_details
     WHERE hotel_room_details_id = ?
     `,
     [hotel_room_details_id]
   );
 
-  const [[booked]] = await pool.query(
+  if (!roomInfo) return false;
+
+  const hotelId = roomInfo.hotel_id;
+  const hotelRoomTypeId = roomInfo.hotel_room_type_id;
+
+  const [[roomCountRow]] = await pool.query(
+    `
+    SELECT COUNT(*) AS total_rooms
+    FROM hotel_room_details
+    WHERE hotel_id = ?
+      AND hotel_room_type_id = ?
+      AND (approval_status IS NULL OR approval_status = 'APPROVED')
+    `,
+    [hotelId, hotelRoomTypeId]
+  );
+  const totalRooms = Number(roomCountRow?.total_rooms ?? 0);
+
+  const [[bookedRow]] = await pool.query(
     `
     SELECT COALESCE(SUM(b.for_room), 0) AS booked_rooms
-    FROM BOOKING b
-    JOIN HOTEL_ROOM_BOOKING hrb
-      ON b.booking_id = hrb.booking_id
-    WHERE hrb.hotel_room_details_id = ?
+    FROM booking b
+    JOIN hotel_room_booking hrb ON b.booking_id = hrb.booking_id
+    JOIN hotel_room_details r ON hrb.hotel_room_details_id = r.hotel_room_details_id
+    WHERE r.hotel_id = ?
+      AND r.hotel_room_type_id = ?
       AND b.status = 'CONFIRMED'
-      AND b.checkin_date < ?
-      AND b.checkout_date > ?
+      AND NOT (b.checkout_date <= ? OR b.checkin_date >= ?)
     `,
-    [hotel_room_details_id, checkout_date, checkin_date]
+    [hotelId, hotelRoomTypeId, checkin_date, checkout_date]
   );
 
-  return (
-    roomCount.total_rooms - booked.booked_rooms >= for_room
-  );
+  const bookedRooms = Number(bookedRow?.booked_rooms ?? 0);
+
+  return (totalRooms - bookedRooms) >= for_room;
 };

@@ -7,14 +7,14 @@ import createTables from "./setupTables.js";
 
 import hotelRoutes from "./routes/hotel.routes.js";
 import roomRoutes from "./routes/room.routes.js";
-//import bookingRoutes from "./routes/booking.routes.js";
+import bookingRoutes from "./routes/booking.routes.js";
 import userRoutes from "./users/user.routes.js";
 import authRoutes from "./auth/auth.routes.js";
 import managerRoutes from "./manager/manager.routes.js";
 import hotelTypeRoutes from "./hotelType/hotelType.routes.js";
 import roomTypeRoutes  from "./roomType/roomType.routes.js";
 import adminRoutes from "./admin/admin.routes.js";
-import bookingRoutes from "./bookings/booking.routes.js";
+//import bookingRoutes from "./bookings/booking.routes.js";
 
 dotenv.config();
 

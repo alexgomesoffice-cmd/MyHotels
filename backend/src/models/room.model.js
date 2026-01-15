@@ -1,6 +1,9 @@
 import { pool } from "../db.js";
 
-// Hotel Manager adds room (PENDING)
+/**
+ * HOTEL MANAGER
+ * Add room (PENDING)
+ */
 export async function createRoom({
   hotel_id,
   hotel_room_type_id,
@@ -10,7 +13,7 @@ export async function createRoom({
 }) {
   const [result] = await pool.query(
     `
-    INSERT INTO HOTEL_ROOM_DETAILS
+    INSERT INTO hotel_room_details
     (
       hotel_id,
       hotel_room_type_id,
@@ -33,7 +36,10 @@ export async function createRoom({
   return result.insertId;
 }
 
-// ADMIN > APPROVE / REJECT ROOM
+/**
+ * ADMIN
+ * Approve / reject room
+ */
 export async function approveRoom({
   hotel_room_details_id,
   approval_status,
@@ -41,7 +47,7 @@ export async function approveRoom({
 }) {
   const [result] = await pool.query(
     `
-    UPDATE HOTEL_ROOM_DETAILS
+    UPDATE hotel_room_details
     SET
       approval_status = ?,
       approved_by_admin_id = ?
@@ -53,21 +59,24 @@ export async function approveRoom({
   return result.affectedRows;
 }
 
-
-// FETCH APPROVED ROOMS BY HOTEL (PUBLIC)
+/**
+ * PUBLIC
+ * Fetch approved rooms by hotel
+ */
 export async function getApprovedRoomsByHotel(hotel_id) {
   const [rows] = await pool.query(
     `
-    SELECT 
-      r.hotel_room_details_id,
-      r.room_number,
-      r.price,
-      rt.name AS room_type
-    FROM HOTEL_ROOM_DETAILS r
-    JOIN HOTEL_ROOM_TYPE rt 
-      ON r.hotel_room_type_id = rt.hotel_room_type_id
-    WHERE r.hotel_id = ?
-      AND r.approval_status = 'APPROVED'
+    SELECT
+      hrd.hotel_room_details_id,
+      hrd.room_number,
+      hrd.price,
+      hrt.name AS room_type
+    FROM hotel_room_details hrd
+    JOIN hotel_room_type hrt
+      ON hrd.hotel_room_type_id = hrt.hotel_room_type_id
+    WHERE hrd.hotel_id = ?
+      AND hrd.approval_status = 'APPROVED'
+    ORDER BY hrd.room_number ASC
     `,
     [hotel_id]
   );

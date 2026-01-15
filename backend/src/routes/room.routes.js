@@ -4,18 +4,19 @@ import {
   adminApproveRoom,
   fetchApprovedRoomsByHotel,
 } from "../controllers/room.controller.js";
+import verifyToken from "../auth/auth.middleware.js";
 
 const router = express.Router();
 
 console.log("ROOM ROUTES LOADED");
 
-// Manager adds room (PENDING)
-router.post("/", addRoom);
+// HOTEL MANAGER*/
+router.post("/", verifyToken, addRoom);
 
-// Admin approve / reject room
-router.patch("/approve", adminApproveRoom);
+// ADMIN
+router.patch("/approve", verifyToken, adminApproveRoom);
 
-// Public: fetch approved rooms for hotel
+// PUBLIC
 router.get("/hotel/:hotel_id", fetchApprovedRoomsByHotel);
 
 export default router;
