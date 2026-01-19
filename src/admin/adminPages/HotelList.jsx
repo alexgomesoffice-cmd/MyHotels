@@ -9,7 +9,13 @@ const HotelList = () => {
     try {
       setLoading(true);
       const data = await fetchAllAdminHotels();
-      setHotels(data);
+
+      // ✅ FILTER ONLY APPROVED HOTELS (REQUIRED FIX)
+      const approvedOnly = data.filter(
+        (hotel) => hotel.approval_status === "APPROVED"
+      );
+
+      setHotels(approvedOnly);
     } catch (err) {
       console.error("FAILED TO LOAD HOTELS:", err);
       alert("Failed to load hotels");
@@ -23,7 +29,11 @@ const HotelList = () => {
   }, []);
 
   const handleDelete = async (hotelId) => {
-    if (!window.confirm("Are you sure you want to delete this hotel? This action cannot be undone.")) {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this hotel? This action cannot be undone."
+      )
+    ) {
       return;
     }
 
@@ -42,19 +52,27 @@ const HotelList = () => {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">
-        Hotels Management
-      </h1>
+      <h1 className="text-2xl font-bold mb-4">Hotels Management</h1>
 
       <div className="overflow-x-auto bg-white shadow-md rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hotel Type</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                ID
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Name
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Location
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Hotel Type
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Actions
+              </th>
             </tr>
           </thead>
 

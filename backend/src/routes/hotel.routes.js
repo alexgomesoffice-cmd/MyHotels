@@ -12,15 +12,16 @@ const router = express.Router();
 
 console.log("HOTEL ROUTES FILE LOADED");
 
-// Public
-router.get("/", fetchHotels);
-router.get("/:id", fetchHotelById);
+// Admin (move ABOVE dynamic routes)
+router.patch("/admin/approve", adminApproveHotel);
+router.get("/admin/pending", fetchPendingHotels);
 
 // Hotel manager
 router.post("/", addHotel);
 router.get("/manager/:user_id", fetchMyHotels);
 
-// Admin
-router.patch("/admin/approve", adminApproveHotel);
-router.get("/admin/pending", fetchPendingHotels);
+// Public
+router.get("/", fetchHotels);
+router.get("/:id", fetchHotelById);
+
 export default router;

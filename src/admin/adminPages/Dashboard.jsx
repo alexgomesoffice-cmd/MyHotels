@@ -30,7 +30,7 @@ const AdminDashboard = () => {
         pendingHotels: data?.pendingHotels ?? 0,
         pendingRooms: data?.pendingRooms ?? 0,
         totalBookings: data?.totalBookings ?? 0,
-        totalHotels: data?.totalHotels?? 0,
+        totalHotels: (data?.totalHotels ?? 0) - (data?.pendingHotels ?? 0),
         totalRooms: data?.totalRooms?? 0,
       });
     } catch (err) {
