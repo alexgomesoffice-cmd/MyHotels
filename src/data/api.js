@@ -38,10 +38,13 @@ export const fetchAllHotels = async () => {
 export const getHotels = fetchAllHotels;
 
 export const searchHotels = async (query) => {
-  const response = await api.get(
-    `/hotels/search?q=${encodeURIComponent(query)}`
+  const response = await api.get("/hotels");
+  const q = query.toLowerCase();
+
+  return response.data.filter((hotel) =>
+    hotel.name?.toLowerCase().includes(q) ||
+    hotel.address?.toLowerCase().includes(q)
   );
-  return response.data;
 };
 
 /* ================= USER ================= */

@@ -54,7 +54,7 @@ const Navbar = () => {
       document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Backend search
+  // 🔹 BACKEND SEARCH (LOGIC FIXED, UI UNCHANGED)
   const handleChange = async (e) => {
     const value = e.target.value;
     setSearchTerm(value);
@@ -67,16 +67,29 @@ const Navbar = () => {
 
     try {
       const results = await searchHotels(value);
-      setSuggestions(results.slice(0, 5));
+
+const mappedResults = results.map((hotel) => ({
+  ...hotel,
+  id: hotel.hotel_id,                     // 🔥 REQUIRED
+  name: hotel.name || hotel.hotel_name,   // 🔥 SAFE
+  image: hotel.image || "/assets/Img/hotel.jpg", // 🔥 FALLBACK
+}));
+
+setSuggestions(mappedResults.slice(0, 5));
+setSuggestionsOpen(true);
+
+
+      setSuggestions(mappedResults.slice(0, 5));
       setSuggestionsOpen(true);
-    } catch {
+    } catch (err) {
+      console.error("Search failed:", err);
       setSuggestions([]);
       setSuggestionsOpen(false);
     }
   };
 
   const handleSelect = (hotel) => {
-    navigate(`/hotels/${hotel.id}`);
+    navigate(`/hotels/${hotel.id}`); // ✅ now correct
     setSearchTerm("");
     setSuggestions([]);
     setSuggestionsOpen(false);
@@ -152,10 +165,9 @@ const Navbar = () => {
         <div className="hidden sm:flex items-center gap-4">
           {user ? (
             <>
-              {/* 🔹 MODIFIED: clickable profile link */}
               <Link to="/profile" className="border border-blue-600 text-blue-600 px-4 py-1 rounded-md hover:bg-blue-50 inline-block">
-                 Profile
-               </Link>
+                Profile
+              </Link>
 
               <button
                 onClick={handleLogout}
@@ -196,9 +208,8 @@ const Navbar = () => {
               <ul className="text-center">
                 {user ? (
                   <>
-                    {/* 🔹 MODIFIED: clickable profile link */}
                     <Link to="/profile" className="border border-blue-600 text-blue-600 px-4 py-1 rounded-md hover:bg-blue-50 inline-block">
-                          Profile
+                      Profile
                     </Link>
 
                     <li
