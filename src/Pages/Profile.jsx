@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { fetchMyProfile, updateMyProfile } from "../data/api";
+import Navbar from "../Components/Navbar/Navbar";
 
 const Profile = () => {
   const [formData, setFormData] = useState({
@@ -99,6 +100,8 @@ const Profile = () => {
   // UI
   // ===============================
   return (
+    <>
+    <Navbar />
     <div className="max-w-3xl mx-auto mt-10 px-4">
       <div className="bg-white shadow rounded-lg p-6">
         <h2 className="text-2xl font-bold mb-6">My Profile</h2>
@@ -178,6 +181,7 @@ const Profile = () => {
         </button>
       </div>
     </div>
+    </>
   );
 };
 

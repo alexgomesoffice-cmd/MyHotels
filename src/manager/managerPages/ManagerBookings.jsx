@@ -49,9 +49,9 @@ const ManagerBookings = () => {
               <tr key={b.booking_id} className="border-t">
                 <td className="p-3">{b.hotel_name}</td>
                 <td className="p-3">{b.room_number}</td>
-                <td className="p-3">{b.check_in_date}</td>
-                <td className="p-3">{b.check_out_date}</td>
-                <td className="p-3">${b.total_price}</td>
+                <td className="p-3">{new Date(b.checkin_date).toLocaleDateString()}</td>
+                <td className="p-3">{new Date(b.checkout_date).toLocaleDateString()}</td>
+                <td className="p-3">TK {b.total_price}</td>
                 <td className="p-3 font-semibold">{b.status}</td>
               </tr>
             ))}

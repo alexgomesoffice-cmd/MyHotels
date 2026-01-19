@@ -15,6 +15,8 @@ const AdminDashboard = () => {
     pendingHotels: 0,
     pendingRooms: 0,
     totalBookings: 0,
+    totalHotels: 0,
+    totalRooms:0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -28,6 +30,8 @@ const AdminDashboard = () => {
         pendingHotels: data?.pendingHotels ?? 0,
         pendingRooms: data?.pendingRooms ?? 0,
         totalBookings: data?.totalBookings ?? 0,
+        totalHotels: data?.totalHotels?? 0,
+        totalRooms: data?.totalRooms?? 0,
       });
     } catch (err) {
       console.error("ADMIN DASHBOARD ERROR:", err);
@@ -66,7 +70,7 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <StatCard
           title="Total Hotels"
-          value="—"
+          value={stats.totalHotels}
         />
 
         <StatCard
@@ -76,7 +80,7 @@ const AdminDashboard = () => {
 
         <StatCard
           title="Total Rooms"
-          value="—"
+          value={stats.totalRooms}
         />
 
         <StatCard

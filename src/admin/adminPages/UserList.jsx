@@ -79,7 +79,7 @@ const Users = () => {
               return (
                 <tr key={user.user_id} className="border-t">
                   <td className="p-3">
-                    {user.first_name} {user.last_name}
+                    {user.name}
                   </td>
 
                   <td className="p-3">{user.email}</td>

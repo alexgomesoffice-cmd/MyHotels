@@ -44,7 +44,7 @@ export const hotels = async (managerId) => {
 
 export const createHotel = async (managerId, data) => {
   const { name, address, description, hotel_type_id } = data;
-
+  console.log(`$name,$adress,$description`)
   // 🔍 Check for duplicate hotel (same name + address + type)
   const [existing] = await db.query(
     `
@@ -63,7 +63,7 @@ export const createHotel = async (managerId, data) => {
     );
   }
 
-  // ✅ Create as PENDING (description INCLUDED)
+  //  Create as PENDING (description INCLUDED)
   await db.query(
     `
     INSERT INTO hotel

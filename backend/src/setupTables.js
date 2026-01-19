@@ -59,8 +59,13 @@ async function createTables() {
         name VARCHAR(100) NOT NULL UNIQUE,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+
       )
     `);
+    await connection.query(`
+        INSERT IGNORE INTO hotel_type (name)
+        VALUES ('Hotel'),('Resort'),('Motel')
+        `);
 
     // ---------------- HOTEL ----------------
     await connection.query(`
@@ -90,7 +95,10 @@ async function createTables() {
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
     `);
-
+      await connection.query(`
+        INSERT IGNORE INTO hotel_room_type (name)
+        VALUES ('Suite'),('Delux'),('Standard')
+        `);
     // ---------------- HOTEL_ROOM_DETAILS ----------------
     await connection.query(`
       CREATE TABLE IF NOT EXISTS hotel_room_details (

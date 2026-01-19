@@ -117,7 +117,7 @@ const BookingDetails = () => {
             </p>
 
             <p>
-              <strong>Price / Night:</strong> ৳{room.price || room.room_price || 0}
+              <strong>Price / Night:</strong> ${room.price || room.room_price || 0}
             </p>
 
             <div>
@@ -166,7 +166,7 @@ const BookingDetails = () => {
             <hr />
 
             <p className="text-lg font-semibold text-center">
-              Total Price: ৳{totalPrice}
+              Total Price: TK {totalPrice}
             </p>
 
             <button

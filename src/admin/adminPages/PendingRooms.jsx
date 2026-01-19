@@ -76,7 +76,7 @@ const PendingRooms = () => {
                 <td className="p-3">{room.hotel_name}</td>
                 <td className="p-3">{room.room_number}</td>
                 <td className="p-3">{room.room_type}</td>
-                <td className="p-3">৳ {room.price}</td>
+                <td className="p-3">$ {room.price}</td>
                 <td className="p-3">{room.created_by}</td>
 
                 <td className="p-3 space-x-2">

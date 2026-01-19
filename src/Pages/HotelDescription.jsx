@@ -76,7 +76,7 @@ const HotelDescription = () => {
                 </div>
 
                 <div className="text-right">
-                  <p className="text-lg font-bold">৳{room.price} / night</p>
+                  <p className="text-lg font-bold">TK {room.price} / night</p>
                   <button
                     onClick={() =>
                       navigate("/booking-details", {
