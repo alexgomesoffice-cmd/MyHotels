@@ -3,30 +3,14 @@ import { useLocation } from "react-router-dom";
 import Navbar from "../Components/Navbar/Navbar";
 import Footer from "../Components/Footer/Footer";
 import HotelCardList from "../Components/UI/HotelCardList";
-import { fetchAllHotels } from "../data/api";
-
-const useQuery = () => new URLSearchParams(useLocation().search);
+import { fetchAllHotels } from "../data/api"
 
 const SearchResults = () => {
   const query = useQuery();
   const searchTerm = query.get("q") || "";
 
-  const [hotels, setHotels] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const loadHotels = async () => {
-      try {
-        const data = await fetchAllHotels();
-        setHotels(data);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadHotels();
-  }, []);
-
-  const filteredHotels = hotels.filter((hotel) =>
+  // Filter hotels by name
+  const filteredHotels = hotelsData.filter((hotel) =>
     hotel.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -39,11 +23,9 @@ const SearchResults = () => {
           Search Results for "{searchTerm}"
         </h2>
 
-        {loading ? (
-          <p className="text-center text-gray-500">Loading...</p>
-        ) : filteredHotels.length > 0 ? (
+        {filteredHotels.length > 0 ? (
           filteredHotels.map((hotel) => (
-            <HotelCardList key={hotel.hotel_id} hotel={hotel} />
+            <HotelCardList key={hotel.id} hotel={hotel} />
           ))
         ) : (
           <p className="text-gray-500 text-center">
@@ -58,3 +40,4 @@ const SearchResults = () => {
 };
 
 export default SearchResults;
+         

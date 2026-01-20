@@ -26,7 +26,6 @@ const HeroSection = () => {
   const [location, setLocation] = useState(destinations[0]);
   const [locationOpen, setLocationOpen] = useState(false);
 
-  const [person, setPerson] = useState(2);
   const [rooms, setRooms] = useState(1);
 
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -67,7 +66,7 @@ const HeroSection = () => {
       )}&checkOut=${format(
         dateRange[0].endDate,
         "yyyy-MM-dd"
-      )}&person=${person}&rooms=${rooms}`
+      )}&rooms=${rooms}`
     );
   };
 
@@ -76,7 +75,7 @@ const HeroSection = () => {
       <div className="max-w-6xl mx-auto text-center">
 
         <h1 className="text-4xl md:text-6xl font-bold mb-4">
-          LET'S TRAVEL!
+          LET&apos;S TRAVEL!
         </h1>
         <p className="text-blue-200 mb-10 text-lg">
           Helping You Find Your Dream Hotel
@@ -84,7 +83,7 @@ const HeroSection = () => {
 
         <div className="bg-white rounded-xl p-4 flex flex-col gap-3 md:flex-row md:items-center">
 
-          {/* DESTINATION (CUSTOM DROPDOWN) */}
+          {/* DESTINATION */}
           <div
             ref={locationRef}
             onClick={() => setLocationOpen(true)}
@@ -116,51 +115,46 @@ const HeroSection = () => {
             )}
           </div>
 
-          {/* DATE RANGE (UNCHANGED) */}
+          {/* DATE RANGE */}
           <div
-  ref={calendarRef}
-  onClick={() => setCalendarOpen(true)}
-  className="relative flex items-center gap-2 border border-gray-300 rounded-lg px-4 py-3 flex-1 cursor-pointer"
->
-  <CalendarDaysIcon className="w-6 h-6 text-gray-500" />
-  <span className="text-black text-left">
-    {`${format(dateRange[0].startDate, "MMM dd")} — ${format(
-      dateRange[0].endDate,
-      "MMM dd"
-    )}`}
-  </span>
+            ref={calendarRef}
+            onClick={() => setCalendarOpen(true)}
+            className="relative flex items-center gap-2 border border-gray-300 rounded-lg px-4 py-3 flex-1 cursor-pointer"
+          >
+            <CalendarDaysIcon className="w-6 h-6 text-gray-500" />
+            <span className="text-black text-left">
+              {`${format(dateRange[0].startDate, "MMM dd")} — ${format(
+                dateRange[0].endDate,
+                "MMM dd"
+              )}`}
+            </span>
 
-  {calendarOpen && (
-    <div
-      className="
-        absolute top-full mt-2 z-50 bg-white rounded-2xl overflow-hidden
-        left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0
-        border border-gray-200
-        [&_.rdrCalendarWrapper]:rounded-2xl
-        [&_.rdrCalendarWrapper]:overflow-hidden
-        [&_.rdrMonths]:justify-center
-        [&_.rdrMonth]:w-full
-        [&_.rdrYearPicker]:hidden
-      "
-      onMouseDown={(e) => e.stopPropagation()}
-      onClick={(e) => e.stopPropagation()}
-    >
-      <DateRange
-        editableDateInputs={false}
-        showDateDisplay={false}
-        moveRangeOnFirstSelection={false}
-        ranges={dateRange}
-        minDate={new Date()}
-        rangeColors={["#2563EB"]}
-        months={1}
-        direction="horizontal"
-        onChange={(item) => setDateRange([item.selection])}
-      />
-    </div>
-  )}
-</div>
+            {calendarOpen && (
+              <div
+                className="
+                  absolute top-full mt-2 z-50 bg-white rounded-2xl overflow-hidden
+                  left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0
+                  border border-gray-200
+                "
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <DateRange
+                  editableDateInputs={false}
+                  showDateDisplay={false}
+                  moveRangeOnFirstSelection={false}
+                  ranges={dateRange}
+                  minDate={new Date()}
+                  rangeColors={["#2563EB"]}
+                  months={1}
+                  direction="horizontal"
+                  onChange={(item) => setDateRange([item.selection])}
+                />
+              </div>
+            )}
+          </div>
 
-          {/* GUESTS*/}
+          {/* ROOMS ONLY (UI SAME AS BEFORE) */}
           <div
             ref={guestRef}
             onClick={() => setGuestOpen(true)}
@@ -168,7 +162,7 @@ const HeroSection = () => {
           >
             <UserIcon className="w-6 h-6 text-gray-500" />
             <span className="text-black">
-              {person} adults · {rooms} room
+              {rooms} room
             </span>
 
             {guestOpen && (
@@ -176,30 +170,6 @@ const HeroSection = () => {
                 className="absolute top-full mt-2 z-50 bg-white text-black rounded-xl p-4 w-full cursor-default border border-gray-200"
                 onClick={(e) => e.stopPropagation()}
               >
-                {/* Adults */}
-                <div className="flex justify-between items-center mb-4">
-                  <span>Adults</span>
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() =>
-                        setPerson(clamp(person - 1, 1, 20))
-                      }
-                      className="w-8 h-8 border rounded-md hover:bg-gray-100 cursor-pointer"
-                    >
-                      −
-                    </button>
-                    <span>{person}</span>
-                    <button
-                      onClick={() =>
-                        setPerson(clamp(person + 1, 1, 20))
-                      }
-                      className="w-8 h-8 border rounded-md hover:bg-gray-100 cursor-pointer"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-
                 {/* Rooms */}
                 <div className="flex justify-between items-center">
                   <span>Rooms</span>

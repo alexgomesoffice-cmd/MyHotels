@@ -64,7 +64,7 @@ async function createTables() {
     `);
     await connection.query(`
         INSERT IGNORE INTO hotel_type (name)
-        VALUES ('Hotel'),('Resort'),('Motel')
+        VALUES ('Luxury Hotel'),('Business Hotel'),('Standard Hotel'),('Resort Hotel'),('Boutique Hotel')
         `);
 
     // ---------------- HOTEL ----------------
@@ -97,7 +97,7 @@ async function createTables() {
     `);
       await connection.query(`
         INSERT IGNORE INTO hotel_room_type (name)
-        VALUES ('Suite'),('Delux'),('Standard')
+        VALUES ('Standard Room'),('Economy Room'),('Deluxe Room'),('Presidential Suite'),('VIP Room')
         `);
     // ---------------- HOTEL_ROOM_DETAILS ----------------
     await connection.query(`

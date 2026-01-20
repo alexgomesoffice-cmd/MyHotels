@@ -40,7 +40,7 @@ const Login = () => {
       // notify Navbar immediately
       window.dispatchEvent(new Event("storage"));
 
-      // 🔁 REDIRECT LOGIC
+      // REDIRECT LOGIC
       const redirectTo = location.state?.redirectTo;
 
       if (redirectTo) {
@@ -48,7 +48,7 @@ const Login = () => {
         return;
       }
 
-      // ✅ ROLE-BASED REDIRECT (fallback)
+      // ROLE-BASED REDIRECT (fallback)
       const roleId = response.data.user.role_id;
 
       if (roleId === 1) {
