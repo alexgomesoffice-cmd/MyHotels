@@ -14,11 +14,11 @@ import Register from "./Pages/Register";
 import Hotels from "./Pages/Hotels";
 import HotelDescription from "./Pages/HotelDescription";
 import SearchResults from "./Pages/SearchResults";
-import Profile from "./Pages/Profile"; 
+import Profile from "./Pages/Profile";
 import BookingDetails from "./Pages/BookingDetails";
+import HeroSearch from "./Pages/HeroSearch";
 
-
-// Layout for user pages
+// Layout
 import Layout from "./Layout";
 
 // Admin Pages
@@ -29,14 +29,13 @@ import AdminHotels from "./admin/adminPages/HotelList";
 import PendingHotels from "./admin/adminPages/PendingHotels";
 import Security from "./admin/adminPages/Security";
 import PendingRooms from "./admin/adminPages/PendingRooms";
+
 // Manager Pages
 import ManagerLayout from "./manager/managerComponents/ManagerLayout";
 import ManagerDashboard from "./manager/managerPages/ManagerDashboard";
 import ManagerHotels from "./manager/managerPages/ManagerHotels";
 import ManagerRooms from "./manager/managerPages/ManagerRooms";
 import ManagerBookings from "./manager/managerPages/ManagerBookings";
-
-
 
 const router = createBrowserRouter([
   {
@@ -49,11 +48,18 @@ const router = createBrowserRouter([
       { path: "terms", element: <TermsAndServices /> },
       { path: "login", element: <Login /> },
       { path: "register", element: <Register /> },
+
+      // Hotels
       { path: "hotels", element: <Hotels /> },
       { path: "hotels/:id", element: <HotelDescription /> },
-      { path: "search", element: <SearchResults /> },
+
+      // Searches
+      { path: "search", element: <SearchResults /> },     // Navbar search
+      { path: "hero-search", element: <HeroSearch /> },   // Hero search
+
+      // User
       { path: "profile", element: <Profile /> },
-      { path: "booking-details", element:<BookingDetails />}
+      { path: "booking-details", element: <BookingDetails /> },
     ],
   },
 
@@ -70,18 +76,16 @@ const router = createBrowserRouter([
     ],
   },
 
- {
-  path: "/manager",
-  element: <ManagerLayout />,
-  children: [
-    { index: true, element: <ManagerDashboard /> },
-    { path: "hotels", element: <ManagerHotels /> },
-    { path: "rooms", element: <ManagerRooms /> },
-    { path: "bookings", element: <ManagerBookings /> },
-    
-  ],
-},
-
+  {
+    path: "/manager",
+    element: <ManagerLayout />,
+    children: [
+      { index: true, element: <ManagerDashboard /> },
+      { path: "hotels", element: <ManagerHotels /> },
+      { path: "rooms", element: <ManagerRooms /> },
+      { path: "bookings", element: <ManagerBookings /> },
+    ],
+  },
 ]);
 
 const App = () => {

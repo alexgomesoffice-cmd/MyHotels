@@ -150,3 +150,21 @@ export const fetchMyBookings = async () => {
 };
 
 export default api;
+
+/* ================= HERO SEARCH ================= */
+
+export const searchAvailableHotels = async ({
+  location,
+  checkIn,
+  checkOut,
+  rooms,
+}) => {
+  const response = await api.post("/search/availability", {
+    location,
+    checkIn,
+    checkOut,
+    rooms,
+  });
+
+  return response.data;
+};

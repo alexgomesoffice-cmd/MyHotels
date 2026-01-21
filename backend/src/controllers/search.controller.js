@@ -1,0 +1,98 @@
+import { pool } from "../db.js";
+
+/*
+  HERO SEARCH:
+  - location -> hotel.address
+  - checkIn / checkOut OR checkin_date / checkout_date
+  - rooms -> minimum available rooms
+*/
+export const searchAvailableHotels = async (req, res) => {
+  try {
+    console.log("HERO SEARCH BACKEND BODY:", req.body);
+
+    const {
+      location,
+      checkIn,
+      checkOut,
+      checkin_date,
+      checkout_date,
+      rooms,
+    } = req.body;
+
+    const finalCheckIn = checkIn || checkin_date;
+    const finalCheckOut = checkOut || checkout_date;
+    const roomsCount = parseInt(rooms, 10);
+
+    if (
+      typeof location !== "string" ||
+      location.trim() === "" ||
+      typeof finalCheckIn !== "string" ||
+      typeof finalCheckOut !== "string" ||
+      !Number.isInteger(roomsCount) ||
+      roomsCount < 1
+    ) {
+      return res.status(400).json({
+        message:
+          "location, checkIn/checkin_date, checkOut/checkout_date and rooms (integer >= 1) are required",
+      });
+    }
+
+    const checkInDate = new Date(finalCheckIn);
+    const checkOutDate = new Date(finalCheckOut);
+
+    if (isNaN(checkInDate) || isNaN(checkOutDate)) {
+      return res.status(400).json({
+        message: "Invalid check-in or check-out date",
+      });
+    }
+
+    if (checkOutDate <= checkInDate) {
+      return res.status(400).json({
+        message: "checkOut date must be after checkIn date",
+      });
+    }
+
+    const [rows] = await pool.query(
+      `
+      SELECT
+        h.hotel_id,
+        h.name AS hotel_name,
+        h.address,
+        h.description,
+        MIN(hrd.price) AS starting_price,
+        COUNT(hrd.hotel_room_details_id) AS available_rooms
+      FROM hotel h
+      JOIN hotel_room_details hrd
+        ON h.hotel_id = hrd.hotel_id
+        AND hrd.approval_status = 'APPROVED'
+
+      LEFT JOIN hotel_room_booking hrb
+        ON hrd.hotel_room_details_id = hrb.hotel_room_details_id
+
+      LEFT JOIN booking b
+        ON b.booking_id = hrb.booking_id
+        AND b.status = 'CONFIRMED'
+        AND NOT (
+          b.checkout_date <= ?
+          OR b.checkin_date >= ?
+        )
+
+      WHERE h.approval_status = 'APPROVED'
+        AND h.address LIKE ?
+        AND b.booking_id IS NULL
+
+      GROUP BY h.hotel_id
+      HAVING available_rooms >= ?
+      ORDER BY h.created_at DESC
+      `,
+      [finalCheckIn, finalCheckOut, `%${location}%`, roomsCount]
+    );
+
+    res.json(rows);
+  } catch (error) {
+    console.error("SEARCH AVAILABLE HOTELS ERROR:", error);
+    res.status(500).json({
+      message: "Failed to search hotels",
+    });
+  }
+};

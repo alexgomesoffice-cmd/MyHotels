@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 
 import { initDB } from "./db.js";
 import createTables from "./setupTables.js";
-
+import searchRoutes from "./routes/search.routes.js";
 import hotelRoutes from "./routes/hotel.routes.js";
 import roomRoutes from "./routes/room.routes.js";
 import bookingRoutes from "./routes/booking.routes.js";
@@ -38,6 +38,7 @@ app.use("/api/manager", managerRoutes);
 app.use("/api/hotel-types", hotelTypeRoutes);
 app.use("/api/room-types", roomTypeRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/search", searchRoutes);
 
 
 // START SERVER
