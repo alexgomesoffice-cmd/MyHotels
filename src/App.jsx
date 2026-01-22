@@ -17,6 +17,7 @@ import SearchResults from "./Pages/SearchResults";
 import Profile from "./Pages/Profile";
 import BookingDetails from "./Pages/BookingDetails";
 import HeroSearch from "./Pages/HeroSearch";
+import BookingHistory from "./Pages/BookingHistory"; // ✅ ADDED
 
 // Layout
 import Layout from "./Layout";
@@ -60,6 +61,7 @@ const router = createBrowserRouter([
       // User
       { path: "profile", element: <Profile /> },
       { path: "booking-details", element: <BookingDetails /> },
+      { path: "booking-history", element: <BookingHistory /> }, // ✅ ADDED
     ],
   },
 

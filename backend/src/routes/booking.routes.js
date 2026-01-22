@@ -6,8 +6,8 @@ import {
   fetchHotelBookings,
   fetchAllBookings,
   checkRoomAvailability,
+  getUserBookingHistory,
 } from "../controllers/booking.controller.js";
-
 import verifyToken from "../auth/auth.middleware.js";
 
 const router = Router();
@@ -38,5 +38,10 @@ router.get("/manager/:manager_id", verifyToken, fetchHotelBookings);
 /* ================= ADMIN > VIEW ALL BOOKINGS ================= */
 
 router.get("/admin", verifyToken, fetchAllBookings);
+
+
+/*booking hiatory*/
+
+router.get("/history", verifyToken, getUserBookingHistory);
 
 export default router;

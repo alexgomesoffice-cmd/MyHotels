@@ -150,6 +150,23 @@ export const fetchMyBookings = async () => {
 };
 
 export default api;
+export const getUserBookingHistory = async () => {
+  try {
+    const res = await api.get("/bookings/history");
+
+    console.log("📦 BOOKING HISTORY API RESPONSE:", res.data);
+
+    return res.data;
+  } catch (error) {
+    console.error(
+      "❌ BOOKING HISTORY API ERROR:",
+      error?.response?.data || error
+    );
+    throw error;
+  }
+};
+
+
 
 /* ================= HERO SEARCH ================= */
 

@@ -86,7 +86,7 @@ export const addBooking = async (req, res) => {
       booking_id: bookingId,
     });
   } catch (error) {
-    console.error("❌ ADD BOOKING ERROR FULL:", error);
+    console.error("ADD BOOKING ERROR FULL:", error);
     res.status(500).json({ message: "Booking failed", error: error.message });
   }
 };
@@ -182,5 +182,58 @@ export const checkRoomAvailability = async (req, res) => {
   } catch (error) {
     console.error("CHECK AVAILABILITY ERROR:", error);
     res.status(500).json({ message: "Failed to check availability" });
+  }
+};
+
+/*booking histoy*/
+
+
+export const getUserBookingHistory = async (req, res) => {
+  console.log("🔥 ENTER getUserBookingHistory");
+  console.log("👉 REQ.USER:", req.user);
+
+  try {
+    const userId = req.user.user_id;
+    console.log("👉 USER ID:", userId);
+    console.log("👉 RUNNING QUERY...");
+
+    const [rows] = await pool.query(
+      `
+      SELECT DISTINCT
+        b.booking_id,
+        b.checkin_date,
+        b.checkout_date,
+        b.for_room AS rooms_booked,
+        b.total_price,
+        b.status,
+        b.created_at,
+        h.hotel_id,
+        h.name AS hotel_name,
+        h.address AS hotel_address
+      FROM booking b
+      JOIN user_details ud
+        ON b.user_details_id = ud.user_details_id
+      JOIN hotel_room_booking hrb
+        ON b.booking_id = hrb.booking_id
+      JOIN hotel_room_details hrd
+        ON hrb.hotel_room_details_id = hrd.hotel_room_details_id
+      JOIN hotel h
+        ON hrd.hotel_id = h.hotel_id
+      WHERE ud.user_id = ?
+      ORDER BY b.created_at DESC
+      `,
+      [userId]
+    );
+
+    console.log("👉 QUERY FINISHED");
+    console.log("👉 ROWS:", rows);
+    console.log("👉 SENDING RESPONSE");
+
+    return res.status(200).json(rows);
+  } catch (error) {
+    console.error("❌ BOOKING HISTORY ERROR:", error);
+    return res.status(500).json({
+      message: "Failed to fetch booking history",
+    });
   }
 };

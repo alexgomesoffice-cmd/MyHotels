@@ -1,16 +1,7 @@
 // backend/src/models/booking.model.js
 import { pool } from "../db.js";
 
-/* ================= CREATE BOOKING (AUTO CONFIRMED) =================
-   createBooking({
-     user_details_id,
-     hotel_room_details_id,
-     checkin_date,
-     checkout_date,
-     for_room,
-     total_price
-   })
-*/
+/* ================= CREATE BOOKING (AUTO CONFIRMED) =================*/
 export async function createBooking({
   user_details_id,
   hotel_room_details_id,
