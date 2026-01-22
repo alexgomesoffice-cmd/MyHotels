@@ -237,3 +237,62 @@ export const getUserBookingHistory = async (req, res) => {
     });
   }
 };
+
+/*user cancel booking*/
+export const cancelUserBooking = async (req, res) => {
+  try {
+    console.log("🔥 ENTER cancelUserBooking");
+
+    const userId = req.user.user_id;
+    const { bookingId } = req.params;
+
+    // Verify booking belongs to user and is cancellable
+    const [rows] = await db.query(
+      `
+      SELECT b.booking_id
+      FROM booking b
+      JOIN user_details ud ON b.user_details_id = ud.user_details_id
+      WHERE b.booking_id = ?
+        AND ud.user_id = ?
+        AND b.status = 'CONFIRMED'
+      `,
+      [bookingId, userId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(400).json({
+        message: "Booking cannot be cancelled",
+      });
+    }
+
+    //  Cancel booking
+    await db.query(
+      `
+      UPDATE booking
+      SET status = 'CANCELLED'
+      WHERE booking_id = ?
+      `,
+      [bookingId]
+    );
+
+    //  RELEASE ROOMS 
+    await db.query(
+      `
+      DELETE FROM hotel_room_booking
+      WHERE booking_id = ?
+      `,
+      [bookingId]
+    );
+
+    console.log("BOOKING CANCELLED & ROOMS RELEASED:", bookingId);
+
+    res.json({
+      message: "Booking cancelled successfully",
+    });
+  } catch (error) {
+    console.error(" CANCEL BOOKING ERROR:", error);
+    res.status(500).json({
+      message: "Failed to cancel booking",
+    });
+  }
+};

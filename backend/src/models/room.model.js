@@ -61,7 +61,7 @@ export async function approveRoom({
 
 /**
  * PUBLIC
- * Fetch approved rooms by hotel
+ * Fetch AVAILABLE approved rooms by hotel
  */
 export async function getApprovedRoomsByHotel(hotel_id) {
   const [rows] = await pool.query(
@@ -74,8 +74,16 @@ export async function getApprovedRoomsByHotel(hotel_id) {
     FROM hotel_room_details hrd
     JOIN hotel_room_type hrt
       ON hrd.hotel_room_type_id = hrt.hotel_room_type_id
+    LEFT JOIN hotel_room_booking hrb
+      ON hrd.hotel_room_details_id = hrb.hotel_room_details_id
+    LEFT JOIN booking b
+      ON hrb.booking_id = b.booking_id
+      AND b.status = 'CONFIRMED'
+      AND CURDATE() >= b.checkin_date
+      AND CURDATE() < b.checkout_date
     WHERE hrd.hotel_id = ?
       AND hrd.approval_status = 'APPROVED'
+      AND b.booking_id IS NULL
     ORDER BY hrd.room_number ASC
     `,
     [hotel_id]

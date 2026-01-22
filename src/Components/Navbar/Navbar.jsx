@@ -166,7 +166,7 @@ setSuggestionsOpen(true);
           {user ? (
             <>
               <Link to="/profile" className="border border-blue-600 text-blue-600 px-4 py-1 rounded-md hover:bg-blue-50 inline-block">
-                Profile
+                Profile & Booking History
               </Link>
 
               <button
@@ -209,7 +209,7 @@ setSuggestionsOpen(true);
                 {user ? (
                   <>
                     <Link to="/profile" className="border border-blue-600 text-blue-600 px-4 py-1 rounded-md hover:bg-blue-50 inline-block">
-                      Profile
+                      Profile & Booking History
                     </Link>
 
                     <li

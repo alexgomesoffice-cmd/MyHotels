@@ -149,6 +149,12 @@ export const fetchMyBookings = async () => {
   return res.data;
 };
 
+export const cancelBooking = async (bookingId) => {
+  const res = await api.patch(`/bookings/cancel/${bookingId}`);
+  return res.data;
+};
+
+
 export default api;
 export const getUserBookingHistory = async () => {
   try {
@@ -159,7 +165,7 @@ export const getUserBookingHistory = async () => {
     return res.data;
   } catch (error) {
     console.error(
-      "❌ BOOKING HISTORY API ERROR:",
+      " BOOKING HISTORY API ERROR:",
       error?.response?.data || error
     );
     throw error;

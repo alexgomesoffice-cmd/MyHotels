@@ -117,7 +117,7 @@ const BookingDetails = () => {
             </p>
 
             <p>
-              <strong>Price / Night:</strong> ${room.price || room.room_price || 0}
+              <strong>Price / Night:</strong> TK {room.price || room.room_price || 0}
             </p>
 
             <div>

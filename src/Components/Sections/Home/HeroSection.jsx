@@ -57,12 +57,12 @@ const HeroSection = () => {
       document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ✅ UPDATED ONLY WHERE REQUIRED
+  // UPDATED ONLY WHERE REQUIRED
   const handleSearch = async () => {
     const startDate = dateRange[0].startDate;
     const endDate = dateRange[0].endDate;
 
-    // ✅ POLITE DATE VALIDATION
+    // POLITE DATE VALIDATION
     if (endDate <= startDate) {
       alert(
         "Please select a check-out date that is later than your check-in date."
