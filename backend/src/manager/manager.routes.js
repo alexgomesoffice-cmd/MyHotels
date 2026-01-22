@@ -14,27 +14,47 @@ import { upload } from "../middlewares/upload.js";
 
 const router = express.Router();
 
-// All manager routes require auth + manager role
+/* ===============================
+   GLOBAL MANAGER AUTH
+================================ */
 router.use(authMiddleware, managerOnly);
 
-// Dashboard
+/* ===============================
+   DASHBOARD
+================================ */
 router.get("/dashboard", getManagerDashboard);
 
-// Hotels
+/* ===============================
+   HOTELS
+================================ */
+
+// ✅ CORRECT ROUTE
 router.get("/hotels", getManagerHotels);
+
+// ✅ BACKWARD-COMPATIBILITY FIX (THIS SOLVES YOUR 404)
+router.get("/hotel", getManagerHotels);
+
+// Create hotel
 router.post(
   "/hotels",
-  authMiddleware,
   upload.array("images", 10),
   createHotel
 );
 
-
-// Rooms
+/* ===============================
+   ROOMS
+================================ */
 router.get("/rooms", getManagerRooms);
-router.post("/rooms", createRoom);
+router.post(
+  "/rooms",
+  upload.array("images", 10),
+  createRoom
+);
 
-// Bookings
+
+/* ===============================
+   BOOKINGS
+================================ */
 router.get("/bookings", getManagerBookings);
 
 export default router;
