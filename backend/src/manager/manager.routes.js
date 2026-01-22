@@ -10,6 +10,7 @@ import {
 
 import authMiddleware from "../auth/auth.middleware.js";
 import managerOnly from "../middlewares/managerOnly.js";
+import { upload } from "../middlewares/upload.js";
 
 const router = express.Router();
 
@@ -21,7 +22,13 @@ router.get("/dashboard", getManagerDashboard);
 
 // Hotels
 router.get("/hotels", getManagerHotels);
-router.post("/hotels", createHotel);
+router.post(
+  "/hotels",
+  authMiddleware,
+  upload.array("images", 10),
+  createHotel
+);
+
 
 // Rooms
 router.get("/rooms", getManagerRooms);

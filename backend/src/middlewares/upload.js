@@ -1,27 +1,40 @@
 import multer from "multer";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
-import cloudinary from "../config/cloudinary.js";
+import path from "path";
+import fs from "fs";
 
-const hotelImageStorage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: "myhotels/hotels",
-    allowed_formats: ["jpg", "jpeg", "png"],
+/* ENSURE UPLOADS FOLDER EXISTS */
+const uploadDir = "uploads";
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
+
+/* STORAGE CONFIG */
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const filename = `${Date.now()}-${Math.round(
+      Math.random() * 1e9
+    )}${ext}`;
+    cb(null, filename);
   },
 });
 
-const roomImageStorage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: "myhotels/rooms",
-    allowed_formats: ["jpg", "jpeg", "png"],
-  },
-});
+/* FILE FILTER */
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype.startsWith("image/")
+  ) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only image files allowed"), false);
+  }
+};
 
-export const uploadHotelImages = multer({
-  storage: hotelImageStorage,
-});
-
-export const uploadRoomImages = multer({
-  storage: roomImageStorage,
+/* 👇 THIS IS WHAT YOUR ROUTES EXPECT */
+export const upload = multer({
+  storage,
+  fileFilter,
 });

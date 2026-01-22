@@ -13,8 +13,19 @@ const ManagerHotels = () => {
     description: "",
     hotel_type_id: "",
   });
-  
-const ADDRESS_OPTIONS = [ "Dhaka", "Chittagong", "Khulna", "Barisal", "Sylhet", "Rajshahi", "Rangpur" ];
+
+  // ✅ REQUIRED: image state
+  const [images, setImages] = useState([]);
+
+  const ADDRESS_OPTIONS = [
+    "Dhaka",
+    "Chittagong",
+    "Khulna",
+    "Barisal",
+    "Sylhet",
+    "Rajshahi",
+    "Rangpur",
+  ];
 
   useEffect(() => {
     fetchHotels();
@@ -48,14 +59,36 @@ const ADDRESS_OPTIONS = [ "Dhaka", "Chittagong", "Khulna", "Barisal", "Sylhet", 
     });
   };
 
+  // ✅ REQUIRED: image handler
+  const handleImageChange = (e) => {
+    setImages(e.target.files);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
     try {
-      await api.post("/manager/hotels", {
-        ...formData,
-        hotel_type_id: Number(formData.hotel_type_id),
+      // ✅ REQUIRED: FormData for file upload
+      const formPayload = new FormData();
+
+      formPayload.append("name", formData.name);
+      formPayload.append("address", formData.address);
+      formPayload.append("description", formData.description);
+      formPayload.append(
+        "hotel_type_id",
+        Number(formData.hotel_type_id)
+      );
+
+      // attach images
+      for (let i = 0; i < images.length; i++) {
+        formPayload.append("images", images[i]);
+      }
+
+      await api.post("/manager/hotels", formPayload, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
       setFormData({
@@ -65,6 +98,7 @@ const ADDRESS_OPTIONS = [ "Dhaka", "Chittagong", "Khulna", "Barisal", "Sylhet", 
         hotel_type_id: "",
       });
 
+      setImages([]);
       fetchHotels();
     } catch {
       setError("Failed to create hotel");
@@ -99,21 +133,22 @@ const ADDRESS_OPTIONS = [ "Dhaka", "Chittagong", "Khulna", "Barisal", "Sylhet", 
         />
 
         {/* HOTEL LOCATION */}
-<select
-  name="address"
-  value={formData.address}
-  onChange={handleChange}
-  required
-  className="w-full border px-3 py-2 rounded"
->
-  <option value="">Select Location</option>
-  {ADDRESS_OPTIONS.map((city) => (
-    <option key={city} value={city}>
-      {city}
-    </option>
-  ))}
-</select>
-      {/* HOTEL TYPE DROPDOWN */}
+        <select
+          name="address"
+          value={formData.address}
+          onChange={handleChange}
+          required
+          className="w-full border px-3 py-2 rounded"
+        >
+          <option value="">Select Location</option>
+          {ADDRESS_OPTIONS.map((city) => (
+            <option key={city} value={city}>
+              {city}
+            </option>
+          ))}
+        </select>
+
+        {/* HOTEL TYPE */}
         <select
           name="hotel_type_id"
           value={formData.hotel_type_id}
@@ -141,6 +176,15 @@ const ADDRESS_OPTIONS = [ "Dhaka", "Chittagong", "Khulna", "Barisal", "Sylhet", 
           required
           className="w-full border px-3 py-2 rounded"
           rows={3}
+        />
+
+        {/* ✅ REQUIRED: HOTEL IMAGES */}
+        <input
+          type="file"
+          multiple
+          accept="image/*"
+          onChange={handleImageChange}
+          className="w-full border px-3 py-2 rounded"
         />
 
         <button className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">
