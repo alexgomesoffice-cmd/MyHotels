@@ -6,6 +6,7 @@ import {
   getPendingHotels,
   getHotelsByManager,
 } from "../models/hotel.model.js";
+import { pool } from "../db.js";
 
 /* ================= PUBLIC ================= */
 export const fetchHotels = async (req, res) => {
@@ -104,5 +105,71 @@ export const fetchMyHotels = async (req, res) => {
     res.status(500).json({
       message: "Failed to fetch hotels",
     });
+  }
+};
+
+/* ================= ADMIN : FORCE DELETE HOTEL ================= */
+export const adminDeleteHotel = async (req, res) => {
+  const connection = await pool.getConnection();
+
+  try {
+    const { hotel_id } = req.params;
+
+    if (!hotel_id) {
+      return res.status(400).json({ message: "hotel_id is required" });
+    }
+
+    await connection.beginTransaction();
+
+    // delete room bookings
+    await connection.query(
+      `
+      DELETE hrb
+      FROM hotel_room_booking hrb
+      JOIN hotel_room_details hrd
+        ON hrb.hotel_room_details_id = hrd.hotel_room_details_id
+      WHERE hrd.hotel_id = ?
+      `,
+      [hotel_id]
+    );
+
+    // delete checkouts
+    await connection.query(
+      `
+      DELETE FROM checkout
+      WHERE booking_id IN (
+        SELECT booking_id FROM booking WHERE hotel_id = ?
+      )
+      `,
+      [hotel_id]
+    );
+
+    // delete bookings
+    await connection.query(
+      `DELETE FROM booking WHERE hotel_id = ?`,
+      [hotel_id]
+    );
+
+    // delete rooms
+    await connection.query(
+      `DELETE FROM hotel_room_details WHERE hotel_id = ?`,
+      [hotel_id]
+    );
+
+    // delete hotel
+    await connection.query(
+      `DELETE FROM hotel WHERE hotel_id = ?`,
+      [hotel_id]
+    );
+
+    await connection.commit();
+
+    res.json({ message: "Hotel deleted successfully" });
+  } catch (error) {
+    await connection.rollback();
+    console.error("ADMIN DELETE HOTEL ERROR:", error);
+    res.status(500).json({ message: "Failed to delete hotel" });
+  } finally {
+    connection.release();
   }
 };

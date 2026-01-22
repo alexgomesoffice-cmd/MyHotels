@@ -198,12 +198,63 @@ export const getAllHotels = async () => {
   return rows;
 };
 
+
+
+/* ================= HOTELS ================= */
+
+
 export const deleteHotel = async (hotelId) => {
-  await pool.query(
-    `
-    DELETE FROM hotel
-    WHERE hotel_id = ?
-    `,
-    [hotelId]
-  );
+  const connection = await pool.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    // Disable FK checks (admin hard delete)
+    await connection.query(`SET FOREIGN_KEY_CHECKS = 0`);
+
+    // 1️⃣ Delete hotel_room_booking (via rooms)
+    await connection.query(
+      `
+      DELETE hrb
+      FROM hotel_room_booking hrb
+      JOIN hotel_room_details hrd
+        ON hrb.hotel_room_details_id = hrd.hotel_room_details_id
+      WHERE hrd.hotel_id = ?
+      `,
+      [hotelId]
+    );
+
+    // 2️⃣ Delete bookings that are now orphaned
+    await connection.query(
+      `
+      DELETE b
+      FROM booking b
+      LEFT JOIN hotel_room_booking hrb
+        ON b.booking_id = hrb.booking_id
+      WHERE hrb.booking_id IS NULL
+      `
+    );
+
+    // 3️⃣ Delete rooms
+    await connection.query(
+      `DELETE FROM hotel_room_details WHERE hotel_id = ?`,
+      [hotelId]
+    );
+
+    // 4️⃣ Delete hotel
+    await connection.query(
+      `DELETE FROM hotel WHERE hotel_id = ?`,
+      [hotelId]
+    );
+
+    // Re-enable FK checks
+    await connection.query(`SET FOREIGN_KEY_CHECKS = 1`);
+
+    await connection.commit();
+  } catch (err) {
+    await connection.rollback();
+    throw err;
+  } finally {
+    connection.release();
+  }
 };
