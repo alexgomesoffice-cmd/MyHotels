@@ -164,6 +164,54 @@ async function createTables() {
       )
     `);
 
+
+      await connection.query(`
+  CREATE TABLE IF NOT EXISTS hotel_images (
+    hotel_image_id INT AUTO_INCREMENT PRIMARY KEY,
+    hotel_id INT NOT NULL,
+    image_url VARCHAR(500) NOT NULL,
+    image_public_id VARCHAR(255) NOT NULL,
+    is_approved BOOLEAN DEFAULT FALSE,
+    uploaded_by INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_hotel_images_hotel
+      FOREIGN KEY (hotel_id)
+      REFERENCES hotel(hotel_id)
+      ON DELETE CASCADE,
+
+    CONSTRAINT fk_hotel_images_user
+      FOREIGN KEY (uploaded_by)
+      REFERENCES user(user_id)
+      ON DELETE CASCADE
+  )
+`);
+
+
+await connection.query(`
+  CREATE TABLE IF NOT EXISTS hotel_images (
+    hotel_image_id INT AUTO_INCREMENT PRIMARY KEY,
+    hotel_id INT NOT NULL,
+    image_url VARCHAR(500) NOT NULL,
+    image_public_id VARCHAR(255) NOT NULL,
+    is_approved BOOLEAN DEFAULT FALSE,
+    uploaded_by INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_hotel_images_hotel
+      FOREIGN KEY (hotel_id)
+      REFERENCES hotel(hotel_id)
+      ON DELETE CASCADE,
+
+    CONSTRAINT fk_hotel_images_user
+      FOREIGN KEY (uploaded_by)
+      REFERENCES user(user_id)
+      ON DELETE CASCADE
+  )
+`);
+
+
+
     console.log("All tables created successfully!");
   } catch (err) {
     console.error("Error creating tables:", err);
@@ -171,5 +219,7 @@ async function createTables() {
     connection.release();
   }
 }
+
+
 
 export default createTables;

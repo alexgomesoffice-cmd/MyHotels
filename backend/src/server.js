@@ -16,6 +16,7 @@ import roomTypeRoutes  from "./roomType/roomType.routes.js";
 import adminRoutes from "./admin/admin.routes.js";
 //import bookingRoutes from "./bookings/booking.routes.js";
 
+
 dotenv.config();
 
 const app = express();
@@ -55,6 +56,7 @@ async function startServer() {
       console.log(
         `Backend running on http://localhost:${process.env.PORT}`
       );
+
     });
   } catch (error) {
     console.error("Failed to start server:", error);

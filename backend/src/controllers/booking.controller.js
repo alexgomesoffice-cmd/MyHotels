@@ -51,7 +51,7 @@ export const addBooking = async (req, res) => {
 
     if (!userDetails) {
       return res.status(404).json({
-        message: "User details not found",
+        message: "Please enter your details to book your room",
       });
     }
 
