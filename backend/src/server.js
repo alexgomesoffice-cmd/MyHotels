@@ -16,6 +16,7 @@ import roomTypeRoutes  from "./roomType/roomType.routes.js";
 import adminRoutes from "./admin/admin.routes.js";
 //import bookingRoutes from "./bookings/booking.routes.js";
 import hotelImageRoutes from "./routes/hotelImage.routes.js";
+import roomImageRoutes from "./routes/roomImage.routes.js";
 
 
 dotenv.config();
@@ -45,6 +46,7 @@ app.use("/api/room-types", roomTypeRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/hotel-images", hotelImageRoutes);
+app.use("/api/room-images", roomImageRoutes);
 
 
 // START SERVER
