@@ -96,9 +96,14 @@ const ManagerRooms = () => {
 
       setImages([]);
       fetchRooms();
-    } catch {
-      setError("Failed to create room");
-    }
+    } catch (err) {
+  console.error(err);
+  setError(
+    err.response?.data?.message ||
+    "Failed to create room"
+  );
+}
+
   };
 
   if (loading) {

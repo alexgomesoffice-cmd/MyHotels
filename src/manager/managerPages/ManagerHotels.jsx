@@ -100,9 +100,13 @@ const ManagerHotels = () => {
 
       setImages([]);
       fetchHotels();
-    } catch {
-      setError("Failed to create hotel");
-    }
+    } catch (err) {
+  console.error(err);
+  setError(
+    err.response?.data?.message ||
+    "Failed to create hotel"
+  );
+}
   };
 
   if (loading) {

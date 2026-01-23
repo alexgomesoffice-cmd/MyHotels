@@ -32,10 +32,13 @@ export const createHotel = async (req, res) => {
     const managerId = req.user.user_id;
 
     if (!name || !address || !description || !hotel_type_id) {
-      return res.status(400).json({
-        message: "All fields are required",
-      });
-    }
+  await connection.rollback();
+  connection.release();
+  return res.status(400).json({
+    message: "All fields are required",
+  });
+}
+
 
     const [hotelResult] = await connection.query(
       `INSERT INTO hotel
@@ -101,16 +104,14 @@ export const createRoom = async (req, res) => {
 
     const managerId = req.user.user_id;
 
-    if (
-      !hotel_id ||
-      !hotel_room_type_id ||
-      !room_number ||
-      !price
-    ) {
-      return res.status(400).json({
-        message: "All fields are required",
-      });
-    }
+    if (!hotel_id || !hotel_room_type_id || !room_number || !price) {
+  await connection.rollback();
+  connection.release();
+  return res.status(400).json({
+    message: "All fields are required",
+  });
+}
+
 
     const [roomResult] = await connection.query(
       `INSERT INTO hotel_room_details

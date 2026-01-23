@@ -60,17 +60,41 @@ export const updateHotelStatus = async (hotel_id, status, admin_id) => {
     throw new Error("Invalid hotel status");
   }
 
-  const [result] = await pool.query(
-    `
-    UPDATE hotel
-    SET approval_status = ?, approved_by_admin_id = ?
-    WHERE hotel_id = ?
-    `,
-    [status, admin_id, hotel_id]
-  );
+  const connection = await pool.getConnection();
 
-  if (result.affectedRows === 0) {
-    throw new Error("Hotel not found");
+  try {
+    await connection.beginTransaction();
+
+    // 1️⃣ Update hotel
+    const [hotelResult] = await connection.query(
+      `
+      UPDATE hotel
+      SET approval_status = ?, approved_by_admin_id = ?
+      WHERE hotel_id = ?
+      `,
+      [status, admin_id, hotel_id]
+    );
+
+    if (hotelResult.affectedRows === 0) {
+      throw new Error("Hotel not found");
+    }
+
+    // 2️⃣ Cascade decision to rooms
+    await connection.query(
+      `
+      UPDATE hotel_room_details
+      SET approval_status = ?, approved_by_admin_id = ?
+      WHERE hotel_id = ?
+      `,
+      [status, admin_id, hotel_id]
+    );
+
+    await connection.commit();
+  } catch (err) {
+    await connection.rollback();
+    throw err;
+  } finally {
+    connection.release();
   }
 };
 
@@ -102,19 +126,51 @@ export const updateRoomStatus = async (room_id, status, admin_id) => {
     throw new Error("Invalid room status");
   }
 
-  const [result] = await pool.query(
-    `
-    UPDATE hotel_room_details
-    SET approval_status = ?, approved_by_admin_id = ?
-    WHERE hotel_room_details_id = ?
-    `,
-    [status, admin_id, room_id]
-  );
+  const connection = await pool.getConnection();
 
-  if (result.affectedRows === 0) {
-    throw new Error("Room not found");
+  try {
+    await connection.beginTransaction();
+
+    // 1️⃣ Check hotel status
+    const [[room]] = await connection.query(
+      `
+      SELECT h.approval_status
+      FROM hotel_room_details r
+      JOIN hotel h ON r.hotel_id = h.hotel_id
+      WHERE r.hotel_room_details_id = ?
+      `,
+      [room_id]
+    );
+
+    if (!room) {
+      throw new Error("Room not found");
+    }
+
+    if (status === "APPROVED" && room.approval_status !== "APPROVED") {
+      throw new Error(
+        "Cannot approve room while hotel is not approved"
+      );
+    }
+
+    // 2️⃣ Update room
+    await connection.query(
+      `
+      UPDATE hotel_room_details
+      SET approval_status = ?, approved_by_admin_id = ?
+      WHERE hotel_room_details_id = ?
+      `,
+      [status, admin_id, room_id]
+    );
+
+    await connection.commit();
+  } catch (err) {
+    await connection.rollback();
+    throw err;
+  } finally {
+    connection.release();
   }
 };
+
 
 /* ================= BOOKINGS ================= */
 

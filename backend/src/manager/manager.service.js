@@ -134,3 +134,48 @@ export const bookings = async (managerId) => {
 
   return rows;
 };
+
+
+/* ===============================
+   HOTEL IMAGES
+================================ */
+export const addHotelImages = async (hotel_id, files) => {
+  if (!files || files.length === 0) return;
+
+  const values = files.map((file) => [
+    hotel_id,
+    file.path,
+    file.filename,
+  ]);
+
+  const sql = `
+    INSERT INTO hotel_images (hotel_id, image_url, image_public_id)
+    VALUES ?
+  `;
+
+  await db.query(sql, [values]);
+};
+
+/* ===============================
+   ROOM IMAGES
+================================ */
+export const addRoomImages = async (
+  hotel_room_details_id,
+  files
+) => {
+  if (!files || files.length === 0) return;
+
+  const values = files.map((file) => [
+    hotel_room_details_id,
+    file.path,
+    file.filename,
+  ]);
+
+  const sql = `
+    INSERT INTO hotel_room_images
+      (hotel_room_details_id, image_url, image_public_id)
+    VALUES ?
+  `;
+
+  await db.query(sql, [values]);
+};
