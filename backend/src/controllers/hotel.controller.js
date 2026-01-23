@@ -7,11 +7,19 @@ import {
   getHotelsByManager,
 } from "../models/hotel.model.js";
 import { pool } from "../db.js";
+import { getHotelImagesByHotelId } from "../models/hotelImage.model.js";
+
 
 /* ================= PUBLIC ================= */
 export const fetchHotels = async (req, res) => {
   try {
     const hotels = await getAllApprovedHotels();
+
+    // Attach images to each hotel
+    for (const hotel of hotels) {
+      hotel.images = await getHotelImagesByHotelId(hotel.hotel_id);
+    }
+
     res.json(hotels);
   } catch (error) {
     console.error("FETCH HOTELS ERROR:", error);
@@ -21,13 +29,21 @@ export const fetchHotels = async (req, res) => {
   }
 };
 
+
 export const fetchHotelById = async (req, res) => {
   try {
     const hotel = await getHotelById(req.params.id);
-    if (!hotel) {
+
+    if (!hotel || hotel.approval_status !== "APPROVED") {
       return res.status(404).json({ message: "Hotel not found" });
     }
-    res.json(hotel);
+
+    const images = await getHotelImagesByHotelId(hotel.hotel_id);
+
+    res.json({
+      ...hotel,
+      images,
+    });
   } catch (error) {
     console.error("FETCH HOTEL ERROR:", error);
     res.status(500).json({
@@ -35,6 +51,7 @@ export const fetchHotelById = async (req, res) => {
     });
   }
 };
+
 
 /* ================= HOTEL MANAGER ================= */
 export const addHotel = async (req, res) => {

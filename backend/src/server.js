@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-
+import path from "path";
 import { initDB } from "./db.js";
 import createTables from "./setupTables.js";
 import searchRoutes from "./routes/search.routes.js";
@@ -15,6 +15,7 @@ import hotelTypeRoutes from "./hotelType/hotelType.routes.js";
 import roomTypeRoutes  from "./roomType/roomType.routes.js";
 import adminRoutes from "./admin/admin.routes.js";
 //import bookingRoutes from "./bookings/booking.routes.js";
+import hotelImageRoutes from "./routes/hotelImage.routes.js";
 
 
 dotenv.config();
@@ -26,7 +27,10 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-
+app.use(
+  "/uploads",
+  express.static(path.join(process.cwd(), "uploads"))
+);
 
 // ROUTES 
 
@@ -40,6 +44,7 @@ app.use("/api/hotel-types", hotelTypeRoutes);
 app.use("/api/room-types", roomTypeRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/search", searchRoutes);
+app.use("/api/hotel-images", hotelImageRoutes);
 
 
 // START SERVER

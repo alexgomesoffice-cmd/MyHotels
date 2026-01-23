@@ -16,10 +16,15 @@ const HotelCardList = ({ hotel }) => {
     >
       <div className="w-full md:w-48 h-48 md:h-auto">
         <img
-          src={hotel.image ?? "/assets/Img/hotel.jpg"}
-          alt={hotel.name ?? "Hotel image"}
-          className="w-full h-full object-cover"
-        />
+  src={
+    hotel.image
+      ? `http://localhost:5000/${hotel.image}`
+      : "/assets/Img/hotel.jpg"
+  }
+  alt={hotel.name ?? "Hotel image"}
+  className="w-full h-full object-cover"
+/>
+
       </div>
 
       <div className="flex flex-col md:flex-row justify-between flex-1 p-4">

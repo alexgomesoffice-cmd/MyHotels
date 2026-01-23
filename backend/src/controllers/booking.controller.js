@@ -189,13 +189,13 @@ export const checkRoomAvailability = async (req, res) => {
 
 
 export const getUserBookingHistory = async (req, res) => {
-  console.log("🔥 ENTER getUserBookingHistory");
-  console.log("👉 REQ.USER:", req.user);
+  console.log(" ENTER getUserBookingHistory");
+  console.log(" REQ.USER:", req.user);
 
   try {
     const userId = req.user.user_id;
-    console.log("👉 USER ID:", userId);
-    console.log("👉 RUNNING QUERY...");
+    console.log(" USER ID:", userId);
+    console.log(" RUNNING QUERY...");
 
     const [rows] = await pool.query(
       `
@@ -225,23 +225,23 @@ export const getUserBookingHistory = async (req, res) => {
       [userId]
     );
 
-    console.log("👉 QUERY FINISHED");
-    console.log("👉 ROWS:", rows);
-    console.log("👉 SENDING RESPONSE");
+    console.log(" QUERY FINISHED");
+    console.log(" ROWS:", rows);
+    console.log(" SENDING RESPONSE");
 
     return res.status(200).json(rows);
   } catch (error) {
-    console.error("❌ BOOKING HISTORY ERROR:", error);
+    console.error(" BOOKING HISTORY ERROR:", error);
     return res.status(500).json({
       message: "Failed to fetch booking history",
     });
   }
 };
 
-/*user cancel booking*/
+/*user cancel booking (un used, wont be using for now)*/
 export const cancelUserBooking = async (req, res) => {
   try {
-    console.log("🔥 ENTER cancelUserBooking");
+    console.log(" ENTER cancelUserBooking");
 
     const userId = req.user.user_id;
     const { bookingId } = req.params;
