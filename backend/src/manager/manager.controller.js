@@ -28,17 +28,17 @@ export const createHotel = async (req, res) => {
   try {
     await connection.beginTransaction();
 
-    const {
-      name,
-      address,
-      description,
-      hotel_type_id
-    } = req.body;
-
+    const { name, address, description, hotel_type_id } = req.body;
     const managerId = req.user.user_id;
 
+    if (!name || !address || !description || !hotel_type_id) {
+      return res.status(400).json({
+        message: "All fields are required",
+      });
+    }
+
     const [hotelResult] = await connection.query(
-      `INSERT INTO hotel 
+      `INSERT INTO hotel
        (name, address, description, hotel_type_id, created_by_user_id, approval_status)
        VALUES (?, ?, ?, ?, ?, 'PENDING')`,
       [name, address, description, hotel_type_id, managerId]
@@ -47,14 +47,14 @@ export const createHotel = async (req, res) => {
     const hotelId = hotelResult.insertId;
 
     if (req.files && req.files.length > 0) {
-      const imageValues = req.files.map(file => [
+      const imageValues = req.files.map((file) => [
         hotelId,
         file.path,
-        file.filename
+        file.filename,
       ]);
 
       await connection.query(
-        `INSERT INTO hotel_images 
+        `INSERT INTO hotel_images
          (hotel_id, image_url, image_public_id)
          VALUES ?`,
         [imageValues]
@@ -65,16 +65,17 @@ export const createHotel = async (req, res) => {
 
     res.status(201).json({
       message: "Hotel created and sent for approval",
-      hotel_id: hotelId
+      hotel_id: hotelId,
     });
-
   } catch (error) {
     await connection.rollback();
-    res.status(500).json({ error: error.message });
+    console.error("CREATE HOTEL ERROR:", error);
+    res.status(500).json({ message: error.message });
   } finally {
     connection.release();
   }
 };
+
 
 export const getManagerRooms = async (req, res) => {
   try {
@@ -89,6 +90,8 @@ export const createRoom = async (req, res) => {
   const connection = await pool.getConnection();
 
   try {
+    await connection.beginTransaction();
+
     const {
       hotel_id,
       hotel_room_type_id,
@@ -98,7 +101,17 @@ export const createRoom = async (req, res) => {
 
     const managerId = req.user.user_id;
 
-    // 1️⃣ Insert room
+    if (
+      !hotel_id ||
+      !hotel_room_type_id ||
+      !room_number ||
+      !price
+    ) {
+      return res.status(400).json({
+        message: "All fields are required",
+      });
+    }
+
     const [roomResult] = await connection.query(
       `INSERT INTO hotel_room_details
        (hotel_id, hotel_room_type_id, room_number, price, created_by_user_id)
@@ -114,27 +127,30 @@ export const createRoom = async (req, res) => {
 
     const roomId = roomResult.insertId;
 
-    // 2️⃣ Insert room images (if any)
     if (req.files && req.files.length > 0) {
-      for (const file of req.files) {
-        await connection.query(
-          `INSERT INTO hotel_room_images
-           (hotel_room_details_id, image_url, image_public_id)
-           VALUES (?, ?, ?)`,
-          [
-            roomId,
-            file.path,
-            file.filename,
-          ]
-        );
-      }
+      const imageValues = req.files.map((file) => [
+        roomId,
+        file.path,
+        file.filename,
+      ]);
+
+      await connection.query(
+        `INSERT INTO hotel_room_images
+         (hotel_room_details_id, image_url, image_public_id)
+         VALUES ?`,
+        [imageValues]
+      );
     }
+
+    await connection.commit();
 
     res.status(201).json({
       message: "Room created and sent for approval",
       room_id: roomId,
     });
   } catch (error) {
+    await connection.rollback();
+    console.error("CREATE ROOM ERROR:", error);
     res.status(500).json({ message: error.message });
   } finally {
     connection.release();

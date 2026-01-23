@@ -27,14 +27,8 @@ router.get("/dashboard", getManagerDashboard);
 /* ===============================
    HOTELS
 ================================ */
-
-// ✅ CORRECT ROUTE
 router.get("/hotels", getManagerHotels);
 
-// ✅ BACKWARD-COMPATIBILITY FIX (THIS SOLVES YOUR 404)
-router.get("/hotel", getManagerHotels);
-
-// Create hotel
 router.post(
   "/hotels",
   upload.array("images", 10),
@@ -45,12 +39,12 @@ router.post(
    ROOMS
 ================================ */
 router.get("/rooms", getManagerRooms);
+
 router.post(
   "/rooms",
   upload.array("images", 10),
   createRoom
 );
-
 
 /* ===============================
    BOOKINGS
