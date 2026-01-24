@@ -37,7 +37,7 @@ const HotelCardList = ({ hotel }) => {
             {hotel.address ?? hotel.location}
           </p>
 
-          <p className="text-gray-700 mt-2 text-sm">
+          <p className="text-gray-700 mt-2 text-sm line-clamp-3">
             {hotel.description ?? "No description provided by the manager."}
           </p>
         </div>

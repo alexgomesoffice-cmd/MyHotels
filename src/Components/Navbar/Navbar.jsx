@@ -72,7 +72,9 @@ const mappedResults = results.map((hotel) => ({
   ...hotel,
   id: hotel.hotel_id,                     //  REQUIRED
   name: hotel.name || hotel.hotel_name,   //  SAFE
-  image: hotel.image || "/assets/Img/hotel.jpg", // FALLBACK
+  image: hotel.images && hotel.images.length > 0 
+    ? `http://localhost:5000/${hotel.images[0].image_url.replace(/\\/g, "/")}` 
+    : "/assets/Img/hotel.jpg", // FALLBACK
 }));
 
 setSuggestions(mappedResults.slice(0, 5));
