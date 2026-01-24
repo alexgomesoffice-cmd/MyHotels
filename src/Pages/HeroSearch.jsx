@@ -28,12 +28,15 @@ const HeroSearch = () => {
       description: hotel.description,
       price: hotel.starting_price,
       availableRooms: hotel.available_rooms,
+      image: hotel.image, // Add this line
     }));
+
+    console.log("Mapped Hotels:", mappedHotels);
+    console.log("Search Results from Backend:", state.searchResults);
 
     setHotels(mappedHotels);
     setLoading(false);
   }, [state]);
-
   return (
     <>
       <Navbar />

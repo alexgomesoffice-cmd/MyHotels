@@ -25,7 +25,7 @@ const HotelDescription = () => {
         // ROOMS
         const roomsRes = await fetchRoomsByHotel(id);
 
-        // FETCH ROOM IMAGES (PER ROOM)
+        // ROOM IMAGES
         const roomsWithImages = await Promise.all(
           roomsRes.map(async (room) => {
             try {
@@ -73,6 +73,22 @@ const HotelDescription = () => {
   return (
     <>
       <Navbar />
+
+      {/* HOTEL IMAGE (RESTORED) */}
+      {hotel.images && hotel.images.length > 0 && (
+        <div className="max-w-6xl mx-auto px-6 mt-6">
+          <div className="bg-gray-100 rounded-xl shadow-sm flex justify-center">
+            <img
+              src={`http://localhost:5000/${hotel.images[0].image_url.replace(
+                /\\/g,
+                "/"
+              )}`}
+              alt={hotel.name}
+              className="max-h-[360px] w-auto object-contain rounded-xl"
+            />
+          </div>
+        </div>
+      )}
 
       <div className="max-w-6xl mx-auto px-6 py-12">
         <h1 className="text-3xl font-semibold text-gray-900 mb-1">

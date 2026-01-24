@@ -1,4 +1,5 @@
 import { pool } from "../db.js";
+import { getHotelImagesByHotelId } from "../models/hotelImage.model.js";
 
 /*
   HERO SEARCH:
@@ -87,6 +88,12 @@ export const searchAvailableHotels = async (req, res) => {
       `,
       [finalCheckIn, finalCheckOut, `%${location}%`, roomsCount]
     );
+
+    // Fetch images for each hotel
+    for (const hotel of rows) {
+      const images = await getHotelImagesByHotelId(hotel.hotel_id);
+      hotel.image = images.length > 0 ? images[0].image_url : null;
+    }
 
     res.json(rows);
   } catch (error) {

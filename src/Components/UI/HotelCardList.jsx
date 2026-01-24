@@ -18,7 +18,7 @@ const HotelCardList = ({ hotel }) => {
         <img
   src={
     hotel.image
-      ? `http://localhost:5000/${hotel.image}`
+      ? `http://localhost:5000/${hotel.image.replace(/\\/g, "/")}`
       : "/assets/Img/hotel.jpg"
   }
   alt={hotel.name ?? "Hotel image"}
