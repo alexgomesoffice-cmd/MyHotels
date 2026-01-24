@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Slider from "react-slick";
+import { useNavigate } from "react-router-dom";
 import HotelCards from "../../HotelCards";
 import { fetchAllHotels } from "../../../data/api";
 import defaultHotel from "../../../assets/Img/OIP.webp";
@@ -19,8 +20,13 @@ const PrevArrow = ({ onClick }) => (
 );
 
 const DiscoverSection = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const handleHotelClick = (hotelId) => {
+    navigate(`/hotels/${hotelId}`);
+  };
 
   useEffect(() => {
     const loadHotels = async () => {
@@ -90,7 +96,12 @@ const DiscoverSection = () => {
         <Slider {...settings}>
           {data.map((item) => (
             <div key={item.id} className="px-3">
-              <HotelCards image={item.image} title={item.title} />
+              <div 
+                className="cursor-pointer"
+                onClick={() => handleHotelClick(item.id)}
+              >
+                <HotelCards image={item.image} title={item.title} />
+              </div>
             </div>
           ))}
         </Slider>
