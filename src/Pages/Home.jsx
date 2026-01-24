@@ -16,7 +16,7 @@ const Home = () => {
 
       <HeroSection />
 
-      {/* Browse Hotels CTA – ADDED (nothing else changed) */}
+      {/* Browse Hotels  */}
       <div className="flex justify-center py-12 bg-white">
         <button
           onClick={() => navigate("/hotels")}

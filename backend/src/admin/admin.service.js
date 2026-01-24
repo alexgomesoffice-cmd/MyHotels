@@ -1,4 +1,6 @@
 import { pool } from "../db.js";
+import fs from "fs/promises";
+import path from "path";
 
 /* ================= ADMIN DASHBOARD ================= */
 
@@ -65,7 +67,62 @@ export const updateHotelStatus = async (hotel_id, status, admin_id) => {
   try {
     await connection.beginTransaction();
 
-    // 1️⃣ Update hotel
+    // If REJECTED, delete all hotel images from database and file system
+    if (status === "REJECTED") {
+      const [images] = await connection.query(
+        `SELECT image_url FROM hotel_images WHERE hotel_id = ?`,
+        [hotel_id]
+      );
+
+      // Delete images from file system
+      for (const image of images) {
+        try {
+          const imagePath = path.join(process.cwd(), image.image_url);
+          await fs.unlink(imagePath);
+        } catch (err) {
+          console.warn(`Failed to delete image file: ${image.image_url}`, err.message);
+          // Continue even if file deletion fails
+        }
+      }
+
+      // Delete images from database
+      await connection.query(
+        `DELETE FROM hotel_images WHERE hotel_id = ?`,
+        [hotel_id]
+      );
+
+      // Delete room images for this hotel too
+      const [roomImages] = await connection.query(
+        `
+        SELECT hi.image_url
+        FROM hotel_room_images hi
+        JOIN hotel_room_details hrd ON hi.hotel_room_details_id = hrd.hotel_room_details_id
+        WHERE hrd.hotel_id = ?
+        `,
+        [hotel_id]
+      );
+
+      for (const image of roomImages) {
+        try {
+          const imagePath = path.join(process.cwd(), image.image_url);
+          await fs.unlink(imagePath);
+        } catch (err) {
+          console.warn(`Failed to delete room image file: ${image.image_url}`, err.message);
+        }
+      }
+
+      // Delete room images from database
+      await connection.query(
+        `
+        DELETE hi FROM hotel_room_images hi
+        JOIN hotel_room_details hrd ON hi.hotel_room_details_id = hrd.hotel_room_details_id
+        WHERE hrd.hotel_id = ?
+        `,
+        [hotel_id]
+      );
+    }
+
+    //  Update hotel
     const [hotelResult] = await connection.query(
       `
       UPDATE hotel
@@ -79,7 +136,7 @@ export const updateHotelStatus = async (hotel_id, status, admin_id) => {
       throw new Error("Hotel not found");
     }
 
-    // 2️⃣ Cascade decision to rooms
+    //  Cascade decision to rooms
     await connection.query(
       `
       UPDATE hotel_room_details
@@ -131,7 +188,7 @@ export const updateRoomStatus = async (room_id, status, admin_id) => {
   try {
     await connection.beginTransaction();
 
-    // 1️⃣ Check hotel status
+    // Check hotel status
     const [[room]] = await connection.query(
       `
       SELECT h.approval_status
@@ -152,7 +209,32 @@ export const updateRoomStatus = async (room_id, status, admin_id) => {
       );
     }
 
-    // 2️⃣ Update room
+    // If REJECTED, delete all room images from database and file system
+    if (status === "REJECTED") {
+      const [images] = await connection.query(
+        `SELECT image_url FROM hotel_room_images WHERE hotel_room_details_id = ?`,
+        [room_id]
+      );
+
+      // Delete images from file system
+      for (const image of images) {
+        try {
+          const imagePath = path.join(process.cwd(), image.image_url);
+          await fs.unlink(imagePath);
+        } catch (err) {
+          console.warn(`Failed to delete room image file: ${image.image_url}`, err.message);
+          // Continue even if file deletion fails
+        }
+      }
+
+      // Delete images from database
+      await connection.query(
+        `DELETE FROM hotel_room_images WHERE hotel_room_details_id = ?`,
+        [room_id]
+      );
+    }
+
+    // Update room
     await connection.query(
       `
       UPDATE hotel_room_details
@@ -265,10 +347,63 @@ export const deleteHotel = async (hotelId) => {
   try {
     await connection.beginTransaction();
 
+    // Delete all hotel images from database and file system
+    const [hotelImages] = await connection.query(
+      `SELECT image_url FROM hotel_images WHERE hotel_id = ?`,
+      [hotelId]
+    );
+
+    // Delete hotel images from file system
+    for (const image of hotelImages) {
+      try {
+        const imagePath = path.join(process.cwd(), image.image_url);
+        await fs.unlink(imagePath);
+      } catch (err) {
+        console.warn(`Failed to delete hotel image file: ${image.image_url}`, err.message);
+      }
+    }
+
+    // Delete all room images for this hotel from database and file system
+    const [roomImages] = await connection.query(
+      `
+      SELECT hi.image_url
+      FROM hotel_room_images hi
+      JOIN hotel_room_details hrd ON hi.hotel_room_details_id = hrd.hotel_room_details_id
+      WHERE hrd.hotel_id = ?
+      `,
+      [hotelId]
+    );
+
+    // Delete room images from file system
+    for (const image of roomImages) {
+      try {
+        const imagePath = path.join(process.cwd(), image.image_url);
+        await fs.unlink(imagePath);
+      } catch (err) {
+        console.warn(`Failed to delete room image file: ${image.image_url}`, err.message);
+      }
+    }
+
     // Disable FK checks (admin hard delete)
     await connection.query(`SET FOREIGN_KEY_CHECKS = 0`);
 
-    // 1️⃣ Delete hotel_room_booking (via rooms)
+    // Delete hotel images from database
+    await connection.query(
+      `DELETE FROM hotel_images WHERE hotel_id = ?`,
+      [hotelId]
+    );
+
+    // Delete room images from database
+    await connection.query(
+      `
+      DELETE hi FROM hotel_room_images hi
+      JOIN hotel_room_details hrd ON hi.hotel_room_details_id = hrd.hotel_room_details_id
+      WHERE hrd.hotel_id = ?
+      `,
+      [hotelId]
+    );
+
+    // Delete hotel_room_booking (via rooms)
     await connection.query(
       `
       DELETE hrb
@@ -280,7 +415,7 @@ export const deleteHotel = async (hotelId) => {
       [hotelId]
     );
 
-    // 2️⃣ Delete bookings that are now orphaned
+    // Delete bookings that are now orphaned
     await connection.query(
       `
       DELETE b
@@ -291,13 +426,13 @@ export const deleteHotel = async (hotelId) => {
       `
     );
 
-    // 3️⃣ Delete rooms
+    // Delete rooms
     await connection.query(
       `DELETE FROM hotel_room_details WHERE hotel_id = ?`,
       [hotelId]
     );
 
-    // 4️⃣ Delete hotel
+    // Delete hotel
     await connection.query(
       `DELETE FROM hotel WHERE hotel_id = ?`,
       [hotelId]

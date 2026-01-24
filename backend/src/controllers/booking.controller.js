@@ -13,8 +13,8 @@ import { pool } from "../db.js";
 /* ================= USER > CREATE BOOKING ================= */
 export const addBooking = async (req, res) => {
   try {
-    console.log("🔹 BOOKING BODY:", req.body);
-    console.log("🔹 USER FROM JWT:", req.user);
+    console.log(" BOOKING BODY:", req.body);
+    console.log(" USER FROM JWT:", req.user);
 
     const {
       hotel_room_details_id,
@@ -238,7 +238,7 @@ export const getUserBookingHistory = async (req, res) => {
   }
 };
 
-/*user cancel booking (un used, wont be using for now)*/
+/*user cancel booking (un used, i wont be using for now)*/
 export const cancelUserBooking = async (req, res) => {
   try {
     console.log(" ENTER cancelUserBooking");

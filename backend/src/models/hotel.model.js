@@ -21,7 +21,6 @@ export async function createHotel({
 }
 
 /* ================= PUBLIC > FETCH APPROVED HOTELS ================= */
-/* ✅ SCHEMA-SAFE + NO 500 IF NO ROOMS */
 export async function getAllApprovedHotels() {
   const [rows] = await pool.query(`
     SELECT 

@@ -10,7 +10,7 @@ const router = express.Router();
 
 console.log("ROOM ROUTES LOADED");
 
-// HOTEL MANAGER*/
+// HOTEL MANAGER
 router.post("/", verifyToken, addRoom);
 
 // ADMIN

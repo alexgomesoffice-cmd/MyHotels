@@ -71,7 +71,7 @@ export const registerUser = async (req, res) => {
 };
 
 
-// USER LOGIN (UNCHANGED)
+// USER LOGIN
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;

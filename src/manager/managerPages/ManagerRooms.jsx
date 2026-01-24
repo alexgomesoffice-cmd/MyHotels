@@ -34,7 +34,6 @@ const ManagerRooms = () => {
     }
   };
 
-  // ✅ CORRECT ENDPOINT (plural — matches backend)
   const fetchHotels = async () => {
     try {
       const res = await api.get("/manager/hotels");

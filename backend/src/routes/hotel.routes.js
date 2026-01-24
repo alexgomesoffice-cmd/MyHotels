@@ -12,7 +12,7 @@ const router = express.Router();
 
 console.log("HOTEL ROUTES FILE LOADED");
 
-// Admin (move ABOVE dynamic routes)
+// Admin 
 router.patch("/admin/approve", adminApproveHotel);
 router.get("/admin/pending", fetchPendingHotels);
 

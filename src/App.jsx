@@ -17,7 +17,7 @@ import SearchResults from "./Pages/SearchResults";
 import Profile from "./Pages/Profile";
 import BookingDetails from "./Pages/BookingDetails";
 import HeroSearch from "./Pages/HeroSearch";
-import BookingHistory from "./Pages/BookingHistory"; // ✅ ADDED
+import BookingHistory from "./Pages/BookingHistory"; 
 
 // Layout
 import Layout from "./Layout";

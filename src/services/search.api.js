@@ -1,4 +1,3 @@
-// src/services/search.api.js
 import api from "../data/api";
 
 /**

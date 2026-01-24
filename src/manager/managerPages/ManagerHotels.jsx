@@ -14,7 +14,7 @@ const ManagerHotels = () => {
     hotel_type_id: "",
   });
 
-  // ✅ REQUIRED: image state
+  // REQUIRED: image state
   const [images, setImages] = useState([]);
 
   const ADDRESS_OPTIONS = [
@@ -59,7 +59,7 @@ const ManagerHotels = () => {
     });
   };
 
-  // ✅ REQUIRED: image handler
+  //  REQUIRED: image handler
   const handleImageChange = (e) => {
     setImages(e.target.files);
   };
@@ -69,7 +69,7 @@ const ManagerHotels = () => {
     setError("");
 
     try {
-      // ✅ REQUIRED: FormData for file upload
+      // REQUIRED: FormData for file upload
       const formPayload = new FormData();
 
       formPayload.append("name", formData.name);
@@ -182,7 +182,7 @@ const ManagerHotels = () => {
           rows={3}
         />
 
-        {/* ✅ REQUIRED: HOTEL IMAGES */}
+        {/* REQUIRED: HOTEL IMAGES */}
         <input
           type="file"
           multiple

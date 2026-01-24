@@ -10,7 +10,7 @@ const HotelList = () => {
       setLoading(true);
       const data = await fetchAllAdminHotels();
 
-      // ✅ FILTER ONLY APPROVED HOTELS (REQUIRED FIX)
+      // FILTER ONLY APPROVED HOTELS (REQUIRED FIX)
       const approvedOnly = data.filter(
         (hotel) => hotel.approval_status === "APPROVED"
       );

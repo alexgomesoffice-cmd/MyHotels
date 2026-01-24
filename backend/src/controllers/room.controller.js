@@ -106,10 +106,7 @@ export const adminApproveRoom = async (req, res) => {
   }
 };
 
-/**
- * PUBLIC
- * Fetch approved rooms by hotel
- */
+/*PUBLIC Fetch approved rooms by hotel */
 export const fetchApprovedRoomsByHotel = async (req, res) => {
   try {
     const { hotel_id } = req.params;

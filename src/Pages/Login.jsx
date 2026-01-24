@@ -48,7 +48,7 @@ const Login = () => {
         return;
       }
 
-      // ✅ ROLE-BASED REDIRECT (fallback)
+      // ROLE-BASED REDIRECT (fallback)
       const roleId = response.data.user.role_id;
 
       if (roleId === 1) {
