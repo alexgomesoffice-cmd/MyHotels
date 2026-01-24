@@ -4,12 +4,12 @@ import { pool as db } from "../db.js";
 
 export const dashboard = async (managerId) => {
   const [[hotels]] = await db.query(
-    "SELECT COUNT(*) total FROM hotel WHERE created_by_user_id = ?",
+    "SELECT COUNT(*) total FROM hotel WHERE created_by_user_id = ? AND approval_status = 'APPROVED'",
     [managerId]
   );
 
   const [[rooms]] = await db.query(
-    "SELECT COUNT(*) total FROM hotel_room_details WHERE created_by_user_id = ?",
+    "SELECT COUNT(*) total FROM hotel_room_details WHERE created_by_user_id = ? AND approval_status = 'APPROVED'",
     [managerId]
   );
 
@@ -20,7 +20,7 @@ export const dashboard = async (managerId) => {
     JOIN hotel_room_booking hrb ON b.booking_id = hrb.booking_id
     JOIN hotel_room_details r ON hrb.hotel_room_details_id = r.hotel_room_details_id
     JOIN hotel h ON r.hotel_id = h.hotel_id
-    WHERE h.created_by_user_id = ?
+    WHERE h.created_by_user_id = ? AND h.approval_status = 'APPROVED' AND r.approval_status = 'APPROVED'
     `,
     [managerId]
   );

@@ -124,7 +124,7 @@ const HotelDescription = () => {
                   className="border border-gray-200 rounded-xl p-5 flex gap-6 items-center hover:bg-gray-50 transition"
                 >
                   {/* ROOM IMAGE */}
-                  <div className="w-40 h-28 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                  <div className="w-40 h-28 bg-gray-100 rounded-lg overflow-hidden shrink-0">
                     <img
                       src={roomImage || "/assets/Img/room.jpg"}
                       alt={room.room_type}

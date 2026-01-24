@@ -70,9 +70,9 @@ const Navbar = () => {
 
 const mappedResults = results.map((hotel) => ({
   ...hotel,
-  id: hotel.hotel_id,                     // 🔥 REQUIRED
-  name: hotel.name || hotel.hotel_name,   // 🔥 SAFE
-  image: hotel.image || "/assets/Img/hotel.jpg", // 🔥 FALLBACK
+  id: hotel.hotel_id,                     //  REQUIRED
+  name: hotel.name || hotel.hotel_name,   //  SAFE
+  image: hotel.image || "/assets/Img/hotel.jpg", // FALLBACK
 }));
 
 setSuggestions(mappedResults.slice(0, 5));
@@ -89,7 +89,7 @@ setSuggestionsOpen(true);
   };
 
   const handleSelect = (hotel) => {
-    navigate(`/hotels/${hotel.id}`); // ✅ now correct
+    navigate(`/hotels/${hotel.id}`); //  now correct
     setSearchTerm("");
     setSuggestions([]);
     setSuggestionsOpen(false);
@@ -171,7 +171,7 @@ setSuggestionsOpen(true);
 
               <button
                 onClick={handleLogout}
-                className="border border-red-500 text-red-500 px-4 py-1 rounded-md hover:bg-red-50"
+                className="bg-blue-600 text-white px-4 py-1 rounded-md hover:bg-blue-700"
               >
                 Logout
               </button>

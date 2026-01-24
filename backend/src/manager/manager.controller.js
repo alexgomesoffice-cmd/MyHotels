@@ -112,6 +112,27 @@ export const createRoom = async (req, res) => {
   });
 }
 
+    // Check if hotel exists, belongs to manager, and is approved
+    const [hotelCheck] = await connection.query(
+      `SELECT approval_status FROM hotel WHERE hotel_id = ? AND created_by_user_id = ?`,
+      [hotel_id, managerId]
+    );
+
+    if (hotelCheck.length === 0) {
+      await connection.rollback();
+      connection.release();
+      return res.status(404).json({
+        message: "Hotel not found or you don't have permission to add rooms to this hotel",
+      });
+    }
+
+    if (hotelCheck[0].approval_status !== 'APPROVED') {
+      await connection.rollback();
+      connection.release();
+      return res.status(403).json({
+        message: "You can only add rooms to approved hotels",
+      });
+    }
 
     const [roomResult] = await connection.query(
       `INSERT INTO hotel_room_details
