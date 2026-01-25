@@ -6,7 +6,7 @@ import path from "path";
 
 export const getDashboardStats = async () => {
   const [[totalHotels]] = await pool.query(
-    `SELECT COUNT(*) AS count FROM hotel`
+    `SELECT COUNT(*) AS count FROM hotel WHERE approval_status = 'APPROVED'`
   );
 
   const [[pendingHotels]] = await pool.query(
@@ -14,7 +14,7 @@ export const getDashboardStats = async () => {
   );
 
   const [[totalRooms]] = await pool.query(
-    `SELECT COUNT(*) AS count FROM hotel_room_details`
+    `SELECT COUNT(*) AS count FROM hotel_room_details WHERE approval_status = 'APPROVED'`
   );
 
   const [[pendingRooms]] = await pool.query(
@@ -289,11 +289,10 @@ export const getAllUsers = async () => {
       u.user_id,
       u.name,
       u.email,
-      r.name AS role,
+      u.role_id,
       u.is_blocked,
       u.created_at
     FROM user u
-    JOIN role r ON u.role_id = r.role_id
     ORDER BY u.created_at DESC
   `);
 

@@ -20,7 +20,7 @@ const HeroSearch = () => {
       return;
     }
 
-    // ADAPT BACKEND DATA → UI FORMAT
+    // ADAPT BACKEND DATA 
     const mappedHotels = state.searchResults.map((hotel) => ({
       id: hotel.hotel_id,
       name: hotel.hotel_name,

@@ -36,7 +36,7 @@ export const dashboard = async (managerId) => {
 
 export const hotels = async (managerId) => {
   const [rows] = await db.query(
-    "SELECT * FROM hotel WHERE created_by_user_id = ?",
+    "SELECT * FROM hotel WHERE created_by_user_id = ? AND approval_status = 'APPROVED'",
     [managerId]
   );
   return rows;

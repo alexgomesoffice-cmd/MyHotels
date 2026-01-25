@@ -11,6 +11,16 @@ export async function createRoom({
   price,
   created_by_user_id,
 }) {
+  // Check if room number already exists for this hotel
+  const [existingRoom] = await pool.query(
+    `SELECT hotel_room_details_id FROM hotel_room_details WHERE hotel_id = ? AND room_number = ?`,
+    [hotel_id, room_number]
+  );
+
+  if (existingRoom.length > 0) {
+    throw new Error(`Room number ${room_number} already exists for this hotel`);
+  }
+
   const [result] = await pool.query(
     `
     INSERT INTO hotel_room_details

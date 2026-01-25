@@ -29,8 +29,7 @@ const AdminDashboard = () => {
       setStats({
         pendingHotels: data?.pendingHotels ?? 0,
         pendingRooms: data?.pendingRooms ?? 0,
-        totalBookings: data?.totalBookings ?? 0,
-        totalHotels: (data?.totalHotels ?? 0) - (data?.pendingHotels ?? 0),
+        totalHotels: data?.totalHotels ?? 0,
         totalRooms: data?.totalRooms?? 0,
       });
     } catch (err) {
@@ -87,11 +86,7 @@ const AdminDashboard = () => {
           title="Pending Rooms"
           value={stats.pendingRooms}
         />
-
-        <StatCard
-          title="Total Bookings"
-          value={stats.totalBookings}
-        />
+        
       </div>
     </div>
   );

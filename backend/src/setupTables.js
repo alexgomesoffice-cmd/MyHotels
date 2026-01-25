@@ -97,7 +97,7 @@ async function createTables() {
     `);
       await connection.query(`
         INSERT IGNORE INTO hotel_room_type (name)
-        VALUES ('Suite'),('Delux'),('Standard')
+        VALUES ('Standard'),('Delux'),('Premium Lounge'),('Standard Suite'),('Presidential Suite')
         `);
     // ---------------- HOTEL_ROOM_DETAILS ----------------
     await connection.query(`

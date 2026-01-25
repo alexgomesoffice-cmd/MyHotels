@@ -67,6 +67,12 @@ const ManagerRooms = () => {
     e.preventDefault();
     setError("");
 
+    // Validate price is not negative
+    if (Number(formData.price) < 0) {
+      setError("Price cannot be negative");
+      return;
+    }
+
     try {
       const data = new FormData();
 
@@ -170,6 +176,8 @@ const ManagerRooms = () => {
           placeholder="Price per night"
           value={formData.price}
           onChange={handleChange}
+          min="0"
+          step="0.01"
           required
           className="w-full border px-3 py-2 rounded"
         />

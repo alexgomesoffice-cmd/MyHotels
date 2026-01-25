@@ -99,6 +99,11 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    // Check if user is blocked
+    if (user.is_blocked === 1) {
+      return res.status(403).json({ message: "Your account has been blocked. Please contact support." });
+    }
+
     const token = jwt.sign(
       {
         user_id: user.user_id,

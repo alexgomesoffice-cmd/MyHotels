@@ -92,7 +92,7 @@ const FeatureSection = () => {
   return (
     <div className="py-10 relative">
       <div className="max-w-[1200px] mx-auto px-6 relative">
-        <h1 className="text-2xl font-bold mb-5">Featured Hotels</h1>
+        <h1 className="text-2xl font-bold mb-5">Discover Hotels</h1>
         <Slider {...settings}>
           {data.map((item) => (
             <div key={item.id} className="px-3">

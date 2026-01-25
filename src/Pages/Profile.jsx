@@ -132,7 +132,7 @@ const Profile = () => {
               />
             </div>
 
-            {/* Email (readonly) */}
+            {/* Email  */}
             <div>
               <label className="text-sm text-gray-600">Email</label>
               <input
@@ -154,7 +154,7 @@ const Profile = () => {
                 <option value="">Select</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
-                <option value="Other">Other</option>
+                
               </select>
             </div>
 
