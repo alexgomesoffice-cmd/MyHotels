@@ -90,7 +90,7 @@ export async function getApprovedRoomsByHotel(hotel_id) {
       ON hrb.booking_id = b.booking_id
       AND b.status = 'CONFIRMED'
       AND CURDATE() >= b.checkin_date
-      AND CURDATE() < b.checkout_date
+      AND CURDATE() <= b.checkout_date
     WHERE hrd.hotel_id = ?
       AND hrd.approval_status = 'APPROVED'
       AND b.booking_id IS NULL

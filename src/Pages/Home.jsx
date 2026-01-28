@@ -27,7 +27,7 @@ const Home = () => {
       </div>
 
       <FeatureSection />
-      {/*<DiscoverSection />*/}
+      <DiscoverSection />
 
       <Footer />
     </div>
