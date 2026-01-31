@@ -13,8 +13,9 @@ import { pool } from "../db.js";
 /* ================= USER > CREATE BOOKING ================= */
 export const addBooking = async (req, res) => {
   try {
-    console.log(" BOOKING BODY:", req.body);
-    console.log(" USER FROM JWT:", req.user);
+    console.log("🔵 BOOKING REQUEST RECEIVED:");
+    console.log("   Body:", req.body);
+    console.log("   User:", req.user);
 
     const {
       hotel_room_details_id,
@@ -23,6 +24,8 @@ export const addBooking = async (req, res) => {
       for_room,
       total_price,
     } = req.body;
+    
+    console.log("🔵 BOOKING DATA: room_id=", hotel_room_details_id, "checkin=", checkin_date, "checkout=", checkout_date, "for_room=", for_room);
 
     const user_id = req.user?.user_id;
     if (!user_id) {

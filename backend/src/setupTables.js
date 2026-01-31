@@ -112,6 +112,7 @@ async function createTables() {
         approved_by_admin_id INT DEFAULT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_room_per_hotel (hotel_id, room_number),
         CONSTRAINT fk_room_hotel FOREIGN KEY (hotel_id) REFERENCES hotel(hotel_id),
         CONSTRAINT fk_room_type FOREIGN KEY (hotel_room_type_id) REFERENCES hotel_room_type(hotel_room_type_id),
         CONSTRAINT fk_room_creator FOREIGN KEY (created_by_user_id) REFERENCES user(user_id),

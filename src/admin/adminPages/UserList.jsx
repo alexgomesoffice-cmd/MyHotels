@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { fetchAllUsers, toggleUserStatus } from "../../data/api";
+import { fetchAllUsers, toggleUserStatus, deleteUser } from "../../data/api";
 
 const roleMap = {
   1: "Admin",
@@ -51,6 +51,27 @@ const Users = () => {
     }
   };
 
+  const handleDelete = async (user) => {
+    const roleType = roleMap[user.role_id] || "Unknown";
+    
+    const confirmMessage = user.role_id === 3 
+      ? `Are you sure you want to delete this Manager? This will also delete all their hotels and rooms from the database.\n\nManager: ${user.name}`
+      : `Are you sure you want to delete this ${roleType}?\n\nUser: ${user.name}`;
+
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      await deleteUser(user.user_id);
+      alert("User deleted successfully");
+      loadUsers();
+    } catch (err) {
+      console.error("FAILED TO DELETE USER:", err);
+      alert(err.response?.data?.message || "Failed to delete user");
+    }
+  };
+
   if (loading) {
     return <p className="p-6">Loading users...</p>;
   }
@@ -68,7 +89,7 @@ const Users = () => {
               <th className="p-3">Role</th>
               <th className="p-3">Status</th>
               <th className="p-3">Joined</th>
-              <th className="p-3">Action</th>
+              <th className="p-3">Actions</th>
             </tr>
           </thead>
 
@@ -104,16 +125,22 @@ const Users = () => {
                     {new Date(user.created_at).toLocaleDateString()}
                   </td>
 
-                  <td className="p-3">
+                  <td className="p-3 flex gap-2">
                     <button
                       onClick={() => handleToggle(user)}
-                      className={`px-3 py-1 rounded text-white ${
+                      className={`px-3 py-1 rounded text-white text-sm ${
                         isBlocked
                           ? "bg-green-600 hover:bg-green-700"
                           : "bg-red-600 hover:bg-red-700"
                       }`}
                     >
                       {isBlocked ? "Unblock" : "Block"}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(user)}
+                      className="px-3 py-1 rounded text-white text-sm bg-gray-700 hover:bg-gray-800"
+                    >
+                      Delete
                     </button>
                   </td>
                 </tr>

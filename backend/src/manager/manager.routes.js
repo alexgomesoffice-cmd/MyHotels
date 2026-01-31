@@ -43,6 +43,12 @@ router.get("/rooms", getManagerRooms);
 router.post(
   "/rooms",
   upload.array("images", 10),
+  (req, res, next) => {
+    console.log("🚨 WARNING: POST /api/manager/rooms called");
+    console.log("   User ID:", req.user?.user_id);
+    console.log("   Body:", req.body);
+    next();
+  },
   createRoom
 );
 

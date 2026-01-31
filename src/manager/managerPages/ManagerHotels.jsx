@@ -204,18 +204,33 @@ const ManagerHotels = () => {
               <th className="p-3">Name</th>
               <th className="p-3">Address</th>
               <th className="p-3">Status</th>
+              <th className="p-3">Submitted At</th>
             </tr>
           </thead>
           <tbody>
-            {hotels.map((hotel) => (
-              <tr key={hotel.hotel_id} className="border-t">
-                <td className="p-3">{hotel.name}</td>
-                <td className="p-3">{hotel.address}</td>
-                <td className="p-3 font-semibold">
-                  {hotel.approval_status}
-                </td>
-              </tr>
-            ))}
+            {hotels.map((hotel) => {
+              const statusColor = 
+                hotel.approval_status === "APPROVED" 
+                  ? "bg-green-100 text-green-700" 
+                  : hotel.approval_status === "REJECTED"
+                  ? "bg-red-100 text-red-700"
+                  : "bg-yellow-100 text-yellow-700";
+
+              return (
+                <tr key={hotel.hotel_id} className="border-t">
+                  <td className="p-3">{hotel.name}</td>
+                  <td className="p-3">{hotel.address}</td>
+                  <td className="p-3">
+                    <span className={`px-2 py-1 rounded font-semibold ${statusColor}`}>
+                      {hotel.approval_status}
+                    </span>
+                  </td>
+                  <td className="p-3">
+                    {new Date(hotel.created_at).toLocaleDateString()}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 

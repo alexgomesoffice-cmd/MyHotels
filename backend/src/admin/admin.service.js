@@ -448,3 +448,139 @@ export const deleteHotel = async (hotelId) => {
     connection.release();
   }
 };
+
+/* ================= DELETE USER ================= */
+export const deleteUser = async (user_id) => {
+  const connection = await pool.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    // 1) Check if user exists
+    const [[user]] = await connection.query(
+      `SELECT role_id FROM user WHERE user_id = ?`,
+      [user_id]
+    );
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // 2) If user is a Hotel Manager, delete all their hotels and rooms
+    if (user.role_id === 3) { // role_id 3 = Hotel_Manager
+      // Get all hotel IDs created by this manager
+      const [hotels] = await connection.query(
+        `SELECT hotel_id FROM hotel WHERE created_by_user_id = ?`,
+        [user_id]
+      );
+
+      // For each hotel, delete all associated data
+      for (const hotel of hotels) {
+        const hotelId = hotel.hotel_id;
+
+        // Delete hotel images
+        const [images] = await connection.query(
+          `SELECT image_url FROM hotel_images WHERE hotel_id = ?`,
+          [hotelId]
+        );
+
+        for (const image of images) {
+          try {
+            const imagePath = path.join(process.cwd(), image.image_url);
+            await fs.unlink(imagePath);
+          } catch (err) {
+            console.warn(`Failed to delete image file: ${image.image_url}`, err.message);
+          }
+        }
+
+        // Delete room images
+        const [roomImages] = await connection.query(
+          `
+          SELECT hi.image_url
+          FROM hotel_room_images hi
+          JOIN hotel_room_details hrd ON hi.hotel_room_details_id = hrd.hotel_room_details_id
+          WHERE hrd.hotel_id = ?
+          `,
+          [hotelId]
+        );
+
+        for (const image of roomImages) {
+          try {
+            const imagePath = path.join(process.cwd(), image.image_url);
+            await fs.unlink(imagePath);
+          } catch (err) {
+            console.warn(`Failed to delete room image file: ${image.image_url}`, err.message);
+          }
+        }
+
+        // Delete all bookings and their associations for this hotel's rooms
+        await connection.query(
+          `
+          DELETE b FROM booking b
+          JOIN hotel_room_booking hrb ON b.booking_id = hrb.booking_id
+          JOIN hotel_room_details hrd ON hrb.hotel_room_details_id = hrd.hotel_room_details_id
+          WHERE hrd.hotel_id = ?
+          `,
+          [hotelId]
+        );
+
+        // Delete hotel_room_booking records
+        await connection.query(
+          `
+          DELETE hrb FROM hotel_room_booking hrb
+          JOIN hotel_room_details hrd ON hrb.hotel_room_details_id = hrd.hotel_room_details_id
+          WHERE hrd.hotel_id = ?
+          `,
+          [hotelId]
+        );
+
+        // Delete room images from database
+        await connection.query(
+          `
+          DELETE hi FROM hotel_room_images hi
+          JOIN hotel_room_details hrd ON hi.hotel_room_details_id = hrd.hotel_room_details_id
+          WHERE hrd.hotel_id = ?
+          `,
+          [hotelId]
+        );
+
+        // Delete hotel_room_details (rooms)
+        await connection.query(
+          `DELETE FROM hotel_room_details WHERE hotel_id = ?`,
+          [hotelId]
+        );
+
+        // Delete hotel images from database
+        await connection.query(
+          `DELETE FROM hotel_images WHERE hotel_id = ?`,
+          [hotelId]
+        );
+
+        // Delete hotel
+        await connection.query(
+          `DELETE FROM hotel WHERE hotel_id = ?`,
+          [hotelId]
+        );
+      }
+    }
+
+    // 3) Delete user_details
+    await connection.query(
+      `DELETE FROM user_details WHERE user_id = ?`,
+      [user_id]
+    );
+
+    // 4) Delete the user
+    await connection.query(
+      `DELETE FROM user WHERE user_id = ?`,
+      [user_id]
+    );
+
+    await connection.commit();
+  } catch (err) {
+    await connection.rollback();
+    throw err;
+  } finally {
+    connection.release();
+  }
+};

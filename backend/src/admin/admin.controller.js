@@ -124,3 +124,20 @@ export const deleteHotel = async (req, res) => {
     res.status(500).json({ message: "Failed to delete hotel" });
   }
 };
+
+/* ================= DELETE USER ================= */
+export const deleteUser = async (req, res) => {
+  const { user_id } = req.body;
+
+  if (!user_id) {
+    return res.status(400).json({ message: "user_id is required" });
+  }
+
+  try {
+    await adminService.deleteUser(user_id);
+    res.json({ message: "User deleted successfully" });
+  } catch (err) {
+    console.error("DELETE USER ERROR:", err);
+    res.status(500).json({ message: err.message || "Failed to delete user" });
+  }
+};

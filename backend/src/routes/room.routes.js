@@ -1,6 +1,5 @@
 import express from "express";
 import {
-  addRoom,
   adminApproveRoom,
   fetchApprovedRoomsByHotel,
 } from "../controllers/room.controller.js";
@@ -9,9 +8,6 @@ import verifyToken, { checkUserBlocked } from "../auth/auth.middleware.js";
 const router = express.Router();
 
 console.log("ROOM ROUTES LOADED");
-
-// HOTEL MANAGER
-router.post("/", verifyToken, checkUserBlocked, addRoom);
 
 // ADMIN
 router.patch("/approve", verifyToken, checkUserBlocked, adminApproveRoom);

@@ -118,6 +118,15 @@ export const toggleUserStatus = async (userId, isBlocked) => {
   return response.data;
 };
 
+export const deleteUser = async (userId) => {
+  const response = await api.delete("/admin/users/:user_id".replace(":user_id", userId), {
+    data: {
+      user_id: userId,
+    },
+  });
+  return response.data;
+};
+
 // Hotels management
 export const fetchAllAdminHotels = async () => {
   const response = await api.get("/admin/hotels");

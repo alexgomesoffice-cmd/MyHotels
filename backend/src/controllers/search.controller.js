@@ -61,26 +61,25 @@ export const searchAvailableHotels = async (req, res) => {
         h.address,
         h.description,
         MIN(hrd.price) AS starting_price,
-        COUNT(hrd.hotel_room_details_id) AS available_rooms
+        COUNT(DISTINCT hrd.hotel_room_details_id) AS available_rooms
       FROM hotel h
       JOIN hotel_room_details hrd
         ON h.hotel_id = hrd.hotel_id
         AND hrd.approval_status = 'APPROVED'
 
-      LEFT JOIN hotel_room_booking hrb
-        ON hrd.hotel_room_details_id = hrb.hotel_room_details_id
-
-      LEFT JOIN booking b
-        ON b.booking_id = hrb.booking_id
-        AND b.status = 'CONFIRMED'
-        AND NOT (
-          b.checkout_date <= ?
-          OR b.checkin_date >= ?
-        )
+      LEFT JOIN (
+        SELECT DISTINCT hrb.hotel_room_details_id
+        FROM hotel_room_booking hrb
+        JOIN booking b ON hrb.booking_id = b.booking_id
+        WHERE b.status = 'CONFIRMED'
+          AND b.checkin_date < ?
+          AND b.checkout_date >= ?
+      ) booked_rooms
+        ON hrd.hotel_room_details_id = booked_rooms.hotel_room_details_id
 
       WHERE h.approval_status = 'APPROVED'
         AND h.address LIKE ?
-        AND b.booking_id IS NULL
+        AND booked_rooms.hotel_room_details_id IS NULL
 
       GROUP BY h.hotel_id
       HAVING available_rooms >= ?

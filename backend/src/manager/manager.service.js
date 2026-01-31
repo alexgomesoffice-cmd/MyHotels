@@ -104,14 +104,32 @@ export const createRoom = async (managerId, data) => {
     price,
   } = data;
 
-  await db.query(
-    `
-    INSERT INTO hotel_room_details
-    (hotel_id, hotel_room_type_id, room_number, price, created_by_user_id)
-    VALUES (?, ?, ?, ?, ?)
-    `,
-    [hotel_id, hotel_room_type_id, room_number, price, managerId]
+  // Check if room number already exists for this hotel
+  const [existingRoom] = await db.query(
+    `SELECT hotel_room_details_id FROM hotel_room_details WHERE hotel_id = ? AND room_number = ?`,
+    [hotel_id, room_number]
   );
+
+  if (existingRoom.length > 0) {
+    throw new Error(`Room number ${room_number} already exists for this hotel`);
+  }
+
+  try {
+    await db.query(
+      `
+      INSERT INTO hotel_room_details
+      (hotel_id, hotel_room_type_id, room_number, price, created_by_user_id, approval_status)
+      VALUES (?, ?, ?, ?, ?, 'PENDING')
+      `,
+      [hotel_id, hotel_room_type_id, room_number, price, managerId]
+    );
+    console.log(`✅ ROOM CREATED (manager.service.js): room_number=${room_number}, hotel_id=${hotel_id}`);
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') {
+      throw new Error(`Room number ${room_number} already exists for this hotel`);
+    }
+    throw error;
+  }
 };
 
 /* ================= BOOKINGS ================= */

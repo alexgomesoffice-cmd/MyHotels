@@ -9,7 +9,8 @@ import {
   getAllUsers,
   updateUserStatus,
   getAllHotels,
-  deleteHotel
+  deleteHotel,
+  deleteUser
 } 
 from "./admin.controller.js";
 
@@ -62,6 +63,7 @@ router.get("/bookings", authMiddleware, adminOnly, getAllBookings);
 
 router.get("/users", authMiddleware, adminOnly, getAllUsers);
 router.post("/users/status", authMiddleware, adminOnly, updateUserStatus);
+router.delete("/users/:user_id", authMiddleware, adminOnly, deleteUser);
 
 
 /* ================= HOTELS MANAGEMENT ================= */

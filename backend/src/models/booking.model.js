@@ -25,6 +25,7 @@ export async function createBooking({
     );
 
     if (!roomInfo) {
+      console.error(`❌ BOOKING ERROR: Room not found for hotel_room_details_id=${hotel_room_details_id}`);
       throw new Error("Requested room not found");
     }
 
@@ -53,6 +54,7 @@ export async function createBooking({
     }
 
     // 3) count already booked rooms for overlapping confirmed bookings
+    // Overlap occurs when: existing_checkin < new_checkout AND existing_checkout >= new_checkin
     const [[bookedRow]] = await connection.query(
       `
       SELECT COALESCE(SUM(b.for_room), 0) AS booked_rooms
@@ -62,9 +64,10 @@ export async function createBooking({
       WHERE r.hotel_id = ?
         AND r.hotel_room_type_id = ?
         AND b.status = 'CONFIRMED'
-        AND NOT (b.checkout_date <= ? OR b.checkin_date >= ?)
+        AND b.checkin_date < ?
+        AND b.checkout_date >= ?
       `,
-      [hotelId, hotelRoomTypeId, checkin_date, checkout_date]
+      [hotelId, hotelRoomTypeId, checkout_date, checkin_date]
     );
     const bookedRooms = Number(bookedRow?.booked_rooms ?? 0);
 
@@ -98,7 +101,7 @@ export async function createBooking({
       HAVING SUM(
         CASE
           WHEN b.booking_id IS NULL THEN 0
-          WHEN NOT (b.checkout_date <= ? OR b.checkin_date >= ?) THEN 1
+          WHEN (b.checkin_date < ? AND b.checkout_date >= ?) THEN 1
           ELSE 0
         END
       ) = 0
@@ -108,8 +111,12 @@ export async function createBooking({
     );
 
     if (!availableRoomsRows || availableRoomsRows.length < for_room) {
+      console.error(`❌ BOOKING ERROR: Insufficient rooms. Found: ${availableRoomsRows?.length || 0}, Required: ${for_room}`);
+      console.error(`   hotelId=${hotelId}, roomTypeId=${hotelRoomTypeId}, checkin=${checkin_date}, checkout=${checkout_date}`);
       throw new Error("Unable to reserve specific rooms — please try again");
     }
+
+    console.log(`✅ BOOKING CREATION: Booked ${availableRoomsRows.length} room(s) for booking_id=${booking_id}`);
 
     // 6) link each selected room to booking
     const insertPromises = availableRoomsRows.map((r) =>
@@ -123,6 +130,8 @@ export async function createBooking({
       )
     );
     await Promise.all(insertPromises);
+
+    console.log(`✅ BOOKING LINKED: booking_id=${booking_id} linked to ${availableRoomsRows.length} rooms`);
 
     await connection.commit();
     return booking_id;
@@ -270,9 +279,10 @@ export const isRoomAvailable = async ({
     WHERE r.hotel_id = ?
       AND r.hotel_room_type_id = ?
       AND b.status = 'CONFIRMED'
-      AND NOT (b.checkout_date <= ? OR b.checkin_date >= ?)
+      AND b.checkin_date < ?
+      AND b.checkout_date >= ?
     `,
-    [hotelId, hotelRoomTypeId, checkin_date, checkout_date]
+    [hotelId, hotelRoomTypeId, checkout_date, checkin_date]
   );
 
   const bookedRooms = Number(bookedRow?.booked_rooms ?? 0);

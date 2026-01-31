@@ -104,13 +104,15 @@ export const createRoom = async (req, res) => {
 
     const managerId = req.user.user_id;
 
+    console.log(`🔍 CREATE ROOM REQUEST: hotel_id=${hotel_id}, room_number=${room_number}, manager_id=${managerId}`);
+
     if (!hotel_id || !hotel_room_type_id || !room_number || !price) {
-  await connection.rollback();
-  connection.release();
-  return res.status(400).json({
-    message: "All fields are required",
-  });
-}
+      await connection.rollback();
+      connection.release();
+      return res.status(400).json({
+        message: "All fields are required",
+      });
+    }
 
     // Check if hotel exists, belongs to manager, and is approved
     const [hotelCheck] = await connection.query(
@@ -134,10 +136,25 @@ export const createRoom = async (req, res) => {
       });
     }
 
+    // Check if room number already exists for this hotel
+    const [existingRoom] = await connection.query(
+      `SELECT hotel_room_details_id FROM hotel_room_details WHERE hotel_id = ? AND room_number = ?`,
+      [hotel_id, room_number]
+    );
+
+    if (existingRoom.length > 0) {
+      await connection.rollback();
+      connection.release();
+      console.warn(`⚠️ DUPLICATE ROOM ATTEMPT: room_number=${room_number} already exists for hotel_id=${hotel_id}`);
+      return res.status(409).json({
+        message: `Room number ${room_number} already exists for this hotel`,
+      });
+    }
+
     const [roomResult] = await connection.query(
       `INSERT INTO hotel_room_details
-       (hotel_id, hotel_room_type_id, room_number, price, created_by_user_id)
-       VALUES (?, ?, ?, ?, ?)`,
+       (hotel_id, hotel_room_type_id, room_number, price, created_by_user_id, approval_status)
+       VALUES (?, ?, ?, ?, ?, 'PENDING')`,
       [
         hotel_id,
         hotel_room_type_id,
@@ -148,6 +165,8 @@ export const createRoom = async (req, res) => {
     );
 
     const roomId = roomResult.insertId;
+
+    console.log(`✅ ROOM CREATED: room_id=${roomId}, room_number=${room_number}, hotel_id=${hotel_id}`);
 
     if (req.files && req.files.length > 0) {
       const imageValues = req.files.map((file) => [
@@ -172,7 +191,15 @@ export const createRoom = async (req, res) => {
     });
   } catch (error) {
     await connection.rollback();
-    console.error("CREATE ROOM ERROR:", error);
+    console.error("❌ CREATE ROOM ERROR:", error.code, error.message);
+    
+    // Handle unique constraint violation
+    if (error.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({
+        message: `Room number ${req.body.room_number} already exists for this hotel`,
+      });
+    }
+    
     res.status(500).json({ message: error.message });
   } finally {
     connection.release();
