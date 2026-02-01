@@ -39,6 +39,20 @@ export const createHotel = async (req, res) => {
   });
 }
 
+    // Check for duplicate hotel (same name, address, location, and type)
+    const [duplicateHotel] = await connection.query(
+      `SELECT hotel_id FROM hotel WHERE name = ? AND address = ? AND hotel_type_id = ? AND approval_status != 'REJECTED'`,
+      [name, address, hotel_type_id]
+    );
+
+    if (duplicateHotel.length > 0) {
+      await connection.rollback();
+      connection.release();
+      return res.status(409).json({
+        message: "A hotel with the same name, address, and type already exists",
+      });
+    }
+
 
     const [hotelResult] = await connection.query(
       `INSERT INTO hotel
@@ -111,6 +125,15 @@ export const createRoom = async (req, res) => {
       connection.release();
       return res.status(400).json({
         message: "All fields are required",
+      });
+    }
+
+    // Validate price is greater than 0
+    if (Number(price) <= 0) {
+      await connection.rollback();
+      connection.release();
+      return res.status(400).json({
+        message: "Price must be greater than 0",
       });
     }
 

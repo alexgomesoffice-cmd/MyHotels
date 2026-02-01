@@ -30,10 +30,10 @@ export const addRoom = async (req, res) => {
       });
     }
 
-    // Validate price is not negative
-    if (Number(price) < 0) {
+    // Validate price is not negative or zero
+    if (Number(price) <= 0) {
       return res.status(400).json({
-        message: "Price cannot be negative",
+        message: "Price must be greater than 0",
       });
     }
 

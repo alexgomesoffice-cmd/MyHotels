@@ -42,6 +42,29 @@ export const addBooking = async (req, res) => {
       return res.status(400).json({ message: "Missing required booking fields" });
     }
 
+    // Validate date format (YYYY-MM-DD)
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(checkin_date) || !dateRegex.test(checkout_date)) {
+      return res.status(400).json({ message: "Invalid date format. Please use YYYY-MM-DD format" });
+    }
+
+    // Validate dates are valid dates
+    const checkinDate = new Date(checkin_date);
+    const checkoutDate = new Date(checkout_date);
+    if (isNaN(checkinDate.getTime()) || isNaN(checkoutDate.getTime())) {
+      return res.status(400).json({ message: "Invalid date values" });
+    }
+
+    // Validate checkout is after checkin
+    if (checkoutDate <= checkinDate) {
+      return res.status(400).json({ message: "Checkout date must be after checkin date" });
+    }
+
+    // Validate total_price is greater than 0
+    if (Number(total_price) <= 0) {
+      return res.status(400).json({ message: "Total price must be greater than 0" });
+    }
+
     // Resolve user_details_id
     const [[userDetails]] = await pool.query(
       `
@@ -98,8 +121,44 @@ export const addBooking = async (req, res) => {
 export const userCancelBooking = async (req, res) => {
   try {
     const { booking_id } = req.params;
+    const user_id = req.user?.user_id;
+
     if (!booking_id) {
       return res.status(400).json({ message: "booking_id is required" });
+    }
+
+    if (!user_id) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    // Get booking details to check checkin date and verify ownership
+    const [[booking]] = await pool.query(
+      `
+      SELECT b.booking_id, b.checkin_date, b.status
+      FROM booking b
+      JOIN user_details ud ON b.user_details_id = ud.user_details_id
+      WHERE b.booking_id = ? AND ud.user_id = ?
+      `,
+      [booking_id, user_id]
+    );
+
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    if (booking.status !== 'CONFIRMED') {
+      return res.status(400).json({ message: "Only confirmed bookings can be cancelled" });
+    }
+
+    // Check if cancellation is allowed (2 days before checkin)
+    const checkinDate = new Date(booking.checkin_date);
+    const currentDate = new Date();
+    const daysUntilCheckin = Math.floor((checkinDate - currentDate) / (1000 * 60 * 60 * 24));
+
+    if (daysUntilCheckin < 2) {
+      return res.status(400).json({ 
+        message: `Bookings can only be cancelled 2 days before check-in. Your check-in is in ${daysUntilCheckin} days.` 
+      });
     }
 
     const cancelled = await cancelBooking({ booking_id });

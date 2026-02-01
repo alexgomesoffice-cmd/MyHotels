@@ -73,7 +73,7 @@ export const searchAvailableHotels = async (req, res) => {
         JOIN booking b ON hrb.booking_id = b.booking_id
         WHERE b.status = 'CONFIRMED'
           AND b.checkin_date < ?
-          AND b.checkout_date >= ?
+          AND b.checkout_date > ?
       ) booked_rooms
         ON hrd.hotel_room_details_id = booked_rooms.hotel_room_details_id
 
@@ -85,7 +85,7 @@ export const searchAvailableHotels = async (req, res) => {
       HAVING available_rooms >= ?
       ORDER BY h.created_at DESC
       `,
-      [finalCheckIn, finalCheckOut, `%${location}%`, roomsCount]
+      [finalCheckOut, finalCheckIn, `%${location}%`, roomsCount]
     );
 
     // Fetch images for each hotel
