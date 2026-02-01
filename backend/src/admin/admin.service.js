@@ -1,6 +1,7 @@
 import { pool } from "../db.js";
 import fs from "fs/promises";
 import path from "path";
+import { logAudit } from "../middlewares/audit.js";
 
 /* ================= ADMIN DASHBOARD ================= */
 
@@ -136,6 +137,18 @@ export const updateHotelStatus = async (hotel_id, status, admin_id) => {
       throw new Error("Hotel not found");
     }
 
+    // FIXED #5: Add audit logging for admin actions
+    await logAudit({
+      user_id: admin_id,
+      action: `${status}_HOTEL`,
+      entity_type: "HOTEL",
+      entity_id: hotel_id,
+      oldValue: { approval_status: "PENDING" },
+      newValue: { approval_status: status },
+      ipAddress: null,
+      userAgent: null,
+    });
+
     //  Cascade decision to rooms
     await connection.query(
       `
@@ -243,6 +256,18 @@ export const updateRoomStatus = async (room_id, status, admin_id) => {
       `,
       [status, admin_id, room_id]
     );
+
+    // FIXED #5: Add audit logging for room status changes
+    await logAudit({
+      user_id: admin_id,
+      action: `${status}_ROOM`,
+      entity_type: "ROOM",
+      entity_id: room_id,
+      oldValue: { approval_status: "PENDING" },
+      newValue: { approval_status: status },
+      ipAddress: null,
+      userAgent: null,
+    });
 
     await connection.commit();
   } catch (err) {

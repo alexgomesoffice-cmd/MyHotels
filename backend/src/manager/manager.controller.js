@@ -39,6 +39,20 @@ export const createHotel = async (req, res) => {
   });
 }
 
+    // FIXED #6: Validate hotel_type_id exists
+    const [hotelTypeCheck] = await connection.query(
+      `SELECT hotel_type_id FROM hotel_type WHERE hotel_type_id = ?`,
+      [hotel_type_id]
+    );
+
+    if (hotelTypeCheck.length === 0) {
+      await connection.rollback();
+      connection.release();
+      return res.status(400).json({
+        message: "Invalid hotel_type_id. Hotel type does not exist",
+      });
+    }
+
     // Check for duplicate hotel (same name, address, location, and type)
     const [duplicateHotel] = await connection.query(
       `SELECT hotel_id FROM hotel WHERE name = ? AND address = ? AND hotel_type_id = ? AND approval_status != 'REJECTED'`,
@@ -171,6 +185,20 @@ export const createRoom = async (req, res) => {
       console.warn(`⚠️ DUPLICATE ROOM ATTEMPT: room_number=${room_number} already exists for hotel_id=${hotel_id}`);
       return res.status(409).json({
         message: `Room number ${room_number} already exists for this hotel`,
+      });
+    }
+
+    // FIXED #7: Validate hotel_room_type_id exists
+    const [roomTypeCheck] = await connection.query(
+      `SELECT hotel_room_type_id FROM hotel_room_type WHERE hotel_room_type_id = ?`,
+      [hotel_room_type_id]
+    );
+
+    if (roomTypeCheck.length === 0) {
+      await connection.rollback();
+      connection.release();
+      return res.status(400).json({
+        message: "Invalid hotel_room_type_id. Room type does not exist",
       });
     }
 

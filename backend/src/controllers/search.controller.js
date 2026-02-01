@@ -30,11 +30,12 @@ export const searchAvailableHotels = async (req, res) => {
       typeof finalCheckIn !== "string" ||
       typeof finalCheckOut !== "string" ||
       !Number.isInteger(roomsCount) ||
-      roomsCount < 1
+      roomsCount < 1 ||
+      roomsCount > 999
     ) {
       return res.status(400).json({
         message:
-          "location, checkIn/checkin_date, checkOut/checkout_date and rooms (integer >= 1) are required",
+          "location, checkIn/checkin_date, checkOut/checkout_date and rooms (integer >= 1 and <= 999) are required",
       });
     }
 
@@ -52,6 +53,9 @@ export const searchAvailableHotels = async (req, res) => {
         message: "checkOut date must be after checkIn date",
       });
     }
+
+    // FIXED #4: Escape SQL wildcards to prevent wildcard injection
+    const escapedLocation = location.replace(/[%_]/g, "\\$&");
 
     const [rows] = await pool.query(
       `
@@ -78,14 +82,14 @@ export const searchAvailableHotels = async (req, res) => {
         ON hrd.hotel_room_details_id = booked_rooms.hotel_room_details_id
 
       WHERE h.approval_status = 'APPROVED'
-        AND h.address LIKE ?
+        AND h.address LIKE ? ESCAPE '\\'
         AND booked_rooms.hotel_room_details_id IS NULL
 
       GROUP BY h.hotel_id
       HAVING available_rooms >= ?
       ORDER BY h.created_at DESC
       `,
-      [finalCheckOut, finalCheckIn, `%${location}%`, roomsCount]
+      [finalCheckOut, finalCheckIn, `%${escapedLocation}%`, roomsCount]
     );
 
     // Fetch images for each hotel

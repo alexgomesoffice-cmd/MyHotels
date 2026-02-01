@@ -55,7 +55,14 @@ export const addBooking = async (req, res) => {
       return res.status(400).json({ message: "Invalid date values" });
     }
 
-    // Validate checkout is after checkin
+    // FIXED #9: Validate checkout is after checkin AND checkin is not in the past
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (checkinDate < today) {
+      return res.status(400).json({ message: "Check-in date cannot be in the past" });
+    }
+
     if (checkoutDate <= checkinDate) {
       return res.status(400).json({ message: "Checkout date must be after checkin date" });
     }
@@ -65,8 +72,8 @@ export const addBooking = async (req, res) => {
       return res.status(400).json({ message: "Total price must be greater than 0" });
     }
 
-    // Resolve user_details_id
-    const [[userDetails]] = await pool.query(
+    // FIXED #11: Validate user_details uniqueness - should only have ONE record
+    const [userDetailsRecords] = await pool.query(
       `
       SELECT user_details_id
       FROM user_details
@@ -75,13 +82,19 @@ export const addBooking = async (req, res) => {
       [user_id]
     );
 
-    if (!userDetails) {
+    if (userDetailsRecords.length === 0) {
       return res.status(404).json({
         message: "Please enter your details to book your room",
       });
     }
 
-    const user_details_id = userDetails.user_details_id;
+    if (userDetailsRecords.length > 1) {
+      return res.status(500).json({
+        message: "Data integrity error. Multiple user details records found. Please contact support.",
+      });
+    }
+
+    const user_details_id = userDetailsRecords[0].user_details_id;
 
     // Check room availability
     const available = await isRoomAvailable({

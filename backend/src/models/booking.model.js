@@ -289,3 +289,33 @@ export const isRoomAvailable = async ({
 
   return (totalRooms - bookedRooms) >= for_room;
 };
+
+// FIXED #8: Helper function to safely get user_id from booking
+// This addresses the issue of booking model missing direct user_id reference
+export async function getUserIdFromBooking(booking_id) {
+  const [[result]] = await pool.query(
+    `SELECT u.user_id
+     FROM booking b
+     JOIN user_details ud ON b.user_details_id = ud.user_details_id
+     JOIN user u ON ud.user_id = u.user_id
+     WHERE b.booking_id = ?`,
+    [booking_id]
+  );
+  
+  return result ? result.user_id : null;
+}
+
+// Helper function to verify booking ownership with proper user_details handling
+export async function verifyBookingOwnership(booking_id, user_id) {
+  const [[result]] = await pool.query(
+    `SELECT b.booking_id
+     FROM booking b
+     JOIN user_details ud ON b.user_details_id = ud.user_details_id
+     WHERE b.booking_id = ?
+     AND ud.user_id = ?
+     AND (SELECT COUNT(*) FROM user_details WHERE user_id = ?) = 1`,
+    [booking_id, user_id, user_id]
+  );
+  
+  return result ? true : false;
+}

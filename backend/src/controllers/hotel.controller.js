@@ -56,7 +56,12 @@ export const fetchHotelById = async (req, res) => {
 /* ================= HOTEL MANAGER ================= */
 export const addHotel = async (req, res) => {
   try {
-    const hotelId = await createHotel(req.body);
+    // FIXED #3: Explicitly set created_by_user_id from authenticated user
+    const hotelData = {
+      ...req.body,
+      created_by_user_id: req.user.user_id,
+    };
+    const hotelId = await createHotel(hotelData);
     res.status(201).json({
       message: "Hotel added successfully. Waiting for admin approval.",
       hotel_id: hotelId,

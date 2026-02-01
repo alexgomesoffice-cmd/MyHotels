@@ -133,6 +133,13 @@ export const deleteUser = async (req, res) => {
     return res.status(400).json({ message: "user_id is required" });
   }
 
+  // FIXED #12: Prevent admin from deleting themselves
+  if (req.user.user_id === user_id) {
+    return res.status(403).json({ 
+      message: "You cannot delete your own account. Contact another admin for this action." 
+    });
+  }
+
   try {
     await adminService.deleteUser(user_id);
     res.json({ message: "User deleted successfully" });
