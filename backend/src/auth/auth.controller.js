@@ -8,7 +8,7 @@ dotenv.config();
 // USER REGISTRATION
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password, roleId } = req.body; // ✅ roleId added
+    const { name, email, password, roleId } = req.body; 
 
     // Validation
     if (!name || !email || !password || !roleId) {
