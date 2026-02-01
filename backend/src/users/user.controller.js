@@ -14,8 +14,11 @@ export const getUserProfile = async (req, res) => {
         u.user_id,
         u.name,
         u.email,
+        u.phone,
+        d.user_details_id,
         d.dob,
         d.gender,
+        d.phone as details_phone,
         d.address
       FROM \`user\` u
       LEFT JOIN user_details d
@@ -30,7 +33,14 @@ export const getUserProfile = async (req, res) => {
     }
 
     // Always return ONE object
-    return res.status(200).json(rows[0]);
+    const profile = rows[0];
+    // Prefer phone from user_details if available, otherwise from user table
+    if (profile.details_phone) {
+      profile.phone = profile.details_phone;
+    }
+    delete profile.details_phone;
+
+    return res.status(200).json(profile);
   } catch (error) {
     console.error("GET PROFILE ERROR:", error);
     return res.status(500).json({
@@ -48,34 +58,55 @@ export const updateUserProfile = async (req, res) => {
 
     const {
       name,
+      phone = null,
       dob = null,
       gender = null,
       address = null,
     } = req.body;
 
+    // Validation
+    if (name && typeof name !== 'string') {
+      return res.status(400).json({ message: "Name must be a string" });
+    }
 
-    // Update name in user table
+    if (phone && typeof phone !== 'string') {
+      return res.status(400).json({ message: "Phone must be a valid phone number" });
+    }
 
-    if (name) {
+    if (gender && !['Male', 'Female', 'Other'].includes(gender)) {
+      return res.status(400).json({ message: "Gender must be Male, Female, or Other" });
+    }
+
+    if (dob && !/^\d{4}-\d{2}-\d{2}$/.test(dob)) {
+      return res.status(400).json({ message: "Date of birth must be in YYYY-MM-DD format" });
+    }
+
+    // Update name and phone in user table if provided
+    if (name || phone) {
+      const updates = [];
+      const params = [];
+
+      if (name) {
+        updates.push("name = ?");
+        params.push(name);
+      }
+
+      if (phone) {
+        updates.push("phone = ?");
+        params.push(phone);
+      }
+
+      params.push(user_id);
+
       await pool.query(
-        `
-        UPDATE \`user\`
-        SET name = ?
-        WHERE user_id = ?
-        `,
-        [name, user_id]
+        `UPDATE \`user\` SET ${updates.join(", ")} WHERE user_id = ?`,
+        params
       );
     }
 
-
     // Check if user_details exists
-
     const [existing] = await pool.query(
-      `
-      SELECT user_details_id
-      FROM user_details
-      WHERE user_id = ?
-      `,
+      `SELECT user_details_id FROM user_details WHERE user_id = ?`,
       [user_id]
     );
 
@@ -83,20 +114,20 @@ export const updateUserProfile = async (req, res) => {
       // Insert new row
       await pool.query(
         `
-        INSERT INTO user_details (user_id, dob, gender, address)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO user_details (user_id, phone, dob, gender, address)
+        VALUES (?, ?, ?, ?, ?)
         `,
-        [user_id, dob, gender, address]
+        [user_id, phone, dob, gender, address]
       );
     } else {
       // Update existing row
       await pool.query(
         `
         UPDATE user_details
-        SET dob = ?, gender = ?, address = ?
+        SET phone = ?, dob = ?, gender = ?, address = ?
         WHERE user_id = ?
         `,
-        [dob, gender, address, user_id]
+        [phone, dob, gender, address, user_id]
       );
     }
 

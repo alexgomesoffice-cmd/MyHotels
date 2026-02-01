@@ -14,15 +14,15 @@ import managerRoutes from "./manager/manager.routes.js";
 import hotelTypeRoutes from "./hotelType/hotelType.routes.js";
 import roomTypeRoutes  from "./roomType/roomType.routes.js";
 import adminRoutes from "./admin/admin.routes.js";
-//import bookingRoutes from "./bookings/booking.routes.js";
 import hotelImageRoutes from "./routes/hotelImage.routes.js";
 import roomImageRoutes from "./routes/roomImage.routes.js";
-
+import { auditInfoMiddleware } from "./middlewares/audit.js";
+import { globalErrorHandler, notFoundHandler } from "./middlewares/errorHandler.js";
+import { bookingRateLimit, searchRateLimit } from "./middlewares/rateLimit.js";
 
 dotenv.config();
 
 const app = express();
-
 
 // MIDDLEWARE
 
@@ -33,21 +33,29 @@ app.use(
   express.static(path.join(process.cwd(), "uploads"))
 );
 
+// Audit info middleware - attach request metadata
+app.use(auditInfoMiddleware);
+
 // ROUTES 
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/hotels", hotelRoutes);
 app.use("/api/rooms", roomRoutes);
-app.use("/api/bookings", bookingRoutes);
+app.use("/api/bookings", bookingRateLimit, bookingRoutes);
 app.use("/api/manager", managerRoutes);
 app.use("/api/hotel-types", hotelTypeRoutes);
 app.use("/api/room-types", roomTypeRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/api/search", searchRoutes);
+app.use("/api/search", searchRateLimit, searchRoutes);
 app.use("/api/hotel-images", hotelImageRoutes);
 app.use("/api/room-images", roomImageRoutes);
 
+// 404 handler
+app.use(notFoundHandler);
+
+// Global error handler (must be last)
+app.use(globalErrorHandler);
 
 // START SERVER
 async function startServer() {

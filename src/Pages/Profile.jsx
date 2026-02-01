@@ -7,6 +7,7 @@ const Profile = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
     address: "",
     gender: "",
     dob: "",
@@ -35,6 +36,7 @@ const Profile = () => {
         setFormData({
           name: data?.name ?? "",
           email: data?.email ?? "",
+          phone: data?.phone ?? "",
           address: data?.address ?? "",
           gender: data?.gender ?? "",
           dob: data?.dob ? data.dob.split("T")[0] : "",
@@ -70,6 +72,7 @@ const Profile = () => {
 
       await updateMyProfile({
         name: formData.name,
+        phone: formData.phone || null,
         dob: formData.dob || null,
         gender: formData.gender || null,
         address: formData.address || null,
@@ -142,6 +145,19 @@ const Profile = () => {
               />
             </div>
 
+            {/* Phone */}
+            <div>
+              <label className="text-sm text-gray-600">Phone</label>
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="+880 0123...."
+                className="w-full border px-3 py-2 rounded-md"
+              />
+            </div>
+
             {/* Gender */}
             <div>
               <label className="text-sm text-gray-600">Gender</label>
@@ -151,10 +167,10 @@ const Profile = () => {
                 onChange={handleChange}
                 className="w-full border px-3 py-2 rounded-md"
               >
-                <option value="">Select</option>
+                <option value="">Select Gender</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
-                
+                <option value="Other">Other</option>
               </select>
             </div>
 

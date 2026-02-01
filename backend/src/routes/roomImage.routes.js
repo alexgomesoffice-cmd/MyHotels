@@ -1,5 +1,5 @@
 import express from "express";
-import { upload } from "../middlewares/upload.js";
+import { upload, handleUploadError } from "../middlewares/upload.js";
 import verifyToken from "../auth/auth.middleware.js";
 import managerOnly from "../middlewares/managerOnly.js";
 import {
@@ -15,6 +15,7 @@ router.post(
   verifyToken,
   managerOnly,
   upload.single("image"),
+  handleUploadError,
   uploadRoomImage
 );
 

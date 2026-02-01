@@ -107,9 +107,20 @@ setSuggestionsOpen(true);
   };
 
   const handleLogout = () => {
+    // Clear all user-related data from localStorage
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("userId");
+    
+    // Clear any cached data
+    sessionStorage.clear();
+    
+    // Dispatch storage event for other tabs/windows
     window.dispatchEvent(new Event("storage"));
+    
+    // Navigate to login
     navigate("/login");
   };
 
