@@ -32,14 +32,31 @@ const DiscoverSection = () => {
     const loadHotels = async () => {
       try {
         const hotels = await fetchAllHotels();
-        const shuffled = hotels.sort(() => Math.random() - 0.5).slice(6, 12);
-        const mappedData = shuffled.map((hotel) => ({
+        // Shuffle all hotels
+        const shuffledAll = hotels.sort(() => Math.random() - 0.5);
+
+        // Featured uses first 6; Discover should use the remaining hotels.
+        const remaining = shuffledAll.slice(6);
+
+        // Take up to 6 hotels from remaining for Discover
+        let discoverSlice = remaining.slice(0, 6);
+
+        // If there are no remaining hotels, fall back to using the first hotels
+        if (discoverSlice.length === 0 && shuffledAll.length > 0) {
+          console.warn("DiscoverSection: no remaining hotels after featured slice — falling back to first hotels", { totalHotels: shuffledAll.length });
+          discoverSlice = shuffledAll.slice(0, Math.min(6, shuffledAll.length));
+        }
+
+        console.debug("DiscoverSection: totalHotels", shuffledAll.length, "discoverCount", discoverSlice.length);
+
+        const mappedData = discoverSlice.map((hotel) => ({
           id: hotel.hotel_id,
           image: hotel.images && hotel.images.length > 0 
             ? `http://localhost:5000/${hotel.images[0].image_url.replace(/\\/g, "/")}` 
             : defaultHotel,
           title: hotel.name,
         }));
+
         setData(mappedData);
       } catch (error) {
         console.error("Error loading discover hotels:", error);
