@@ -7,7 +7,7 @@ import {
   fetchPendingHotels,
   fetchMyHotels 
 } from "../controllers/hotel.controller.js";
-import verifyToken, { checkUserBlocked } from "../auth/auth.middleware.js";
+import verifyToken, { checkUserBlocked } from "../middlewares/auth.middleware.js";
 import managerOnly from "../middlewares/managerOnly.js";
 import adminOnly from "../middlewares/adminOnly.js";
 

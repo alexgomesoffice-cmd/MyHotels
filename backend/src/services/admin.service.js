@@ -1,4 +1,64 @@
-export * from "../services/admin.service.js";
+import { pool } from "../db.js";
+import fs from "fs/promises";
+import path from "path";
+import { logAudit } from "../middlewares/audit.js";
+
+/* ================= ADMIN DASHBOARD ================= */
+
+export const getDashboardStats = async () => {
+  const [[totalHotels]] = await pool.query(
+    `SELECT COUNT(*) AS count FROM hotel WHERE approval_status = 'APPROVED'`
+  );
+
+  const [[pendingHotels]] = await pool.query(
+    `SELECT COUNT(*) AS count FROM hotel WHERE approval_status = 'PENDING'`
+  );
+
+  const [[totalRooms]] = await pool.query(
+    `SELECT COUNT(*) AS count FROM hotel_room_details WHERE approval_status = 'APPROVED'`
+  );
+
+  const [[pendingRooms]] = await pool.query(
+    `SELECT COUNT(*) AS count
+     FROM hotel_room_details
+     WHERE approval_status = 'PENDING'`
+  );
+
+  const [[totalBookings]] = await pool.query(
+    `SELECT COUNT(*) AS count FROM booking`
+  );
+
+  return {
+    totalHotels: totalHotels.count,
+    pendingHotels: pendingHotels.count,
+    totalRooms: totalRooms.count,
+    pendingRooms: pendingRooms.count,
+    totalBookings: totalBookings.count,
+  };
+};
+
+/* ================= HOTELS ================= */
+
+export const getPendingHotels = async () => {
+  const [rows] = await pool.query(`
+    SELECT
+      h.hotel_id,
+      h.name,
+      h.address,
+      h.created_at,
+      u.name AS created_by,
+      ht.name AS hotel_type
+    FROM hotel h
+    JOIN user u ON h.created_by_user_id = u.user_id
+    JOIN hotel_type ht ON h.hotel_type_id = ht.hotel_type_id
+    WHERE h.approval_status = 'PENDING'
+    ORDER BY h.created_at DESC
+  `);
+
+  return rows;
+};
+
+export const updateHotelStatus = async (hotel_id, status, admin_id) => {
   if (!["APPROVED", "REJECTED"].includes(status)) {
     throw new Error("Invalid hotel status");
   }
@@ -105,7 +165,8 @@ export * from "../services/admin.service.js";
     throw err;
   } finally {
     connection.release();
-  };
+  }
+};
 
 /* ================= ROOMS ================= */
 

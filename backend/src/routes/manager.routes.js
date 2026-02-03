@@ -6,9 +6,9 @@ import {
   getManagerRooms,
   createRoom,
   getManagerBookings,
-} from "./manager.controller.js";
+} from "../controllers/manager.controller.js";
 
-import authMiddleware from "../auth/auth.middleware.js";
+import authMiddleware from "../middlewares/auth.middleware.js";
 import managerOnly from "../middlewares/managerOnly.js";
 import { upload } from "../middlewares/upload.js";
 

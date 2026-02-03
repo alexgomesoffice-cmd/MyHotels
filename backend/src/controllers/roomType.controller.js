@@ -1,4 +1,4 @@
-import { getAllRoomTypes } from "./roomType.model.js";
+import { getAllRoomTypes } from "../models/roomType.model.js";
 
 /* ================= ROOM TYPES ================= */
 

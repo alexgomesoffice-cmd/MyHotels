@@ -12,11 +12,11 @@ import {
   deleteHotel,
   deleteUser
 } 
-from "./admin.controller.js";
+from "../controllers/admin.controller.js";
 
 
 
-import authMiddleware from "../auth/auth.middleware.js";
+import authMiddleware from "../middlewares/auth.middleware.js";
 import adminOnly from "../middlewares/adminOnly.js";
 
 const router = express.Router();
@@ -83,4 +83,3 @@ router.delete(
 );
 
 export default router;
-

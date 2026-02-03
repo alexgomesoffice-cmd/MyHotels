@@ -1,6 +1,6 @@
 import express from "express";
 import { upload, handleUploadError } from "../middlewares/upload.js";
-import verifyToken from "../auth/auth.middleware.js";
+import verifyToken from "../middlewares/auth.middleware.js";
 import managerOnly from "../middlewares/managerOnly.js";
 import {
   uploadHotelImage,

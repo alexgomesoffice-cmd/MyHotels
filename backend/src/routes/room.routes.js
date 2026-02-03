@@ -3,7 +3,7 @@ import {
   adminApproveRoom,
   fetchApprovedRoomsByHotel,
 } from "../controllers/room.controller.js";
-import verifyToken, { checkUserBlocked } from "../auth/auth.middleware.js";
+import verifyToken, { checkUserBlocked } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 

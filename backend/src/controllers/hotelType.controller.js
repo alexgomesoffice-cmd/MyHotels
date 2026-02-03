@@ -1,4 +1,4 @@
-import * as hotelTypeService from "./hotelType.service.js";
+import * as hotelTypeService from "../services/hotelType.service.js";
 
 export const getHotelTypes = async (req, res) => {
   try {

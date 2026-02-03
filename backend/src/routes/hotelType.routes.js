@@ -1,5 +1,5 @@
 import express from "express";
-import { getHotelTypes } from "./hotelType.controller.js";
+import { getHotelTypes } from "../controllers/hotelType.controller.js";
 
 const router = express.Router();
 

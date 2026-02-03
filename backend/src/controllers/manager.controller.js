@@ -1,5 +1,5 @@
-import * as managerService from "./manager.service.js";
-import { getAllRoomTypes } from "../roomType/roomType.model.js";
+import * as managerService from "../services/manager.service.js";
+import { getAllRoomTypes } from "../models/roomType.model.js";
 import { pool } from "../db.js";
 
 export const getManagerDashboard = async (req, res) => {

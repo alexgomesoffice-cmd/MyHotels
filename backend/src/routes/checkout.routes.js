@@ -5,7 +5,7 @@ import {
   fetchAllCheckouts,
 } from "../controllers/checkout.controller.js";
 
-import verifyToken, { checkUserBlocked } from "../auth/auth.middleware.js";
+import verifyToken, { checkUserBlocked } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 

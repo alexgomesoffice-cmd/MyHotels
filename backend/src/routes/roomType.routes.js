@@ -1,5 +1,5 @@
 import express from "express";
-import { fetchRoomTypes } from "./roomType.controller.js";
+import { fetchRoomTypes } from "../controllers/roomType.controller.js";
 
 const router = express.Router();
 
