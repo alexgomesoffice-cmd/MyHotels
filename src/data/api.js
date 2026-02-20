@@ -118,6 +118,15 @@ export const toggleUserStatus = async (userId, isBlocked) => {
   return response.data;
 };
 
+export const deleteUser = async (userId) => {
+  const response = await api.delete("/admin/users/:user_id".replace(":user_id", userId), {
+    data: {
+      user_id: userId,
+    },
+  });
+  return response.data;
+};
+
 // Hotels management
 export const fetchAllAdminHotels = async () => {
   const response = await api.get("/admin/hotels");
@@ -149,4 +158,45 @@ export const fetchMyBookings = async () => {
   return res.data;
 };
 
+export const cancelBooking = async (bookingId) => {
+  const res = await api.patch(`/bookings/cancel/${bookingId}`);
+  return res.data;
+};
+
+
 export default api;
+export const getUserBookingHistory = async () => {
+  try {
+    const res = await api.get("/bookings/history");
+
+    console.log("📦 BOOKING HISTORY API RESPONSE:", res.data);
+
+    return res.data;
+  } catch (error) {
+    console.error(
+      " BOOKING HISTORY API ERROR:",
+      error?.response?.data || error
+    );
+    throw error;
+  }
+};
+
+
+
+/* ================= HERO SEARCH ================= */
+
+export const searchAvailableHotels = async ({
+  location,
+  checkIn,
+  checkOut,
+  rooms,
+}) => {
+  const response = await api.post("/search/availability", {
+    location,
+    checkIn,
+    checkOut,
+    rooms,
+  });
+
+  return response.data;
+};

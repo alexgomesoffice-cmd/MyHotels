@@ -70,9 +70,11 @@ const Navbar = () => {
 
 const mappedResults = results.map((hotel) => ({
   ...hotel,
-  id: hotel.hotel_id,                     // 🔥 REQUIRED
-  name: hotel.name || hotel.hotel_name,   // 🔥 SAFE
-  image: hotel.image || "/assets/Img/hotel.jpg", // 🔥 FALLBACK
+  id: hotel.hotel_id,                     //  REQUIRED
+  name: hotel.name || hotel.hotel_name,   //  SAFE
+  image: hotel.images && hotel.images.length > 0 
+    ? `http://localhost:5000/${hotel.images[0].image_url.replace(/\\/g, "/")}` 
+    : "/assets/Img/hotel.jpg", // FALLBACK
 }));
 
 setSuggestions(mappedResults.slice(0, 5));
@@ -89,7 +91,7 @@ setSuggestionsOpen(true);
   };
 
   const handleSelect = (hotel) => {
-    navigate(`/hotels/${hotel.id}`); // ✅ now correct
+    navigate(`/hotels/${hotel.id}`); //  now correct
     setSearchTerm("");
     setSuggestions([]);
     setSuggestionsOpen(false);
@@ -105,9 +107,20 @@ setSuggestionsOpen(true);
   };
 
   const handleLogout = () => {
+    // Clear all user-related data from localStorage
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("userId");
+    
+    // Clear any cached data
+    sessionStorage.clear();
+    
+    // Dispatch storage event for other tabs/windows
     window.dispatchEvent(new Event("storage"));
+    
+    // Navigate to login
     navigate("/login");
   };
 
@@ -166,12 +179,12 @@ setSuggestionsOpen(true);
           {user ? (
             <>
               <Link to="/profile" className="border border-blue-600 text-blue-600 px-4 py-1 rounded-md hover:bg-blue-50 inline-block">
-                Profile
+                Profile & Booking History
               </Link>
 
               <button
                 onClick={handleLogout}
-                className="border border-red-500 text-red-500 px-4 py-1 rounded-md hover:bg-red-50"
+                className="bg-blue-600 text-white px-4 py-1 rounded-md hover:bg-blue-700"
               >
                 Logout
               </button>
@@ -209,7 +222,7 @@ setSuggestionsOpen(true);
                 {user ? (
                   <>
                     <Link to="/profile" className="border border-blue-600 text-blue-600 px-4 py-1 rounded-md hover:bg-blue-50 inline-block">
-                      Profile
+                      Profile & Booking History
                     </Link>
 
                     <li

@@ -30,6 +30,13 @@ export const addRoom = async (req, res) => {
       });
     }
 
+    // Validate price is not negative or zero
+    if (Number(price) <= 0) {
+      return res.status(400).json({
+        message: "Price must be greater than 0",
+      });
+    }
+
     if (!created_by_user_id) {
       return res.status(401).json({
         message: "Unauthorized",
@@ -50,6 +57,14 @@ export const addRoom = async (req, res) => {
     });
   } catch (error) {
     console.error("ADD ROOM ERROR:", error);
+    
+    // Check for duplicate room number error
+    if (error.message.includes("already exists")) {
+      return res.status(409).json({
+        message: error.message,
+      });
+    }
+    
     res.status(500).json({
       message: "Failed to add room",
     });
@@ -106,10 +121,7 @@ export const adminApproveRoom = async (req, res) => {
   }
 };
 
-/**
- * PUBLIC
- * Fetch approved rooms by hotel
- */
+/*PUBLIC Fetch approved rooms by hotel */
 export const fetchApprovedRoomsByHotel = async (req, res) => {
   try {
     const { hotel_id } = req.params;

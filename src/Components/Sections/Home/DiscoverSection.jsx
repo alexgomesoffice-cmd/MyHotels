@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Slider from "react-slick";
+import { useNavigate } from "react-router-dom";
 import HotelCards from "../../HotelCards";
-import hotel from "../../../assets/Img/OIP.webp";
+import { fetchAllHotels } from "../../../data/api";
+import defaultHotel from "../../../assets/Img/OIP.webp";
 
 const NextArrow = ({ onClick }) => (
   <div className="absolute right-[-60px] top-1/2 transform -translate-y-1/2 cursor-pointer text-3xl select-none px-3"
@@ -18,14 +20,53 @@ const PrevArrow = ({ onClick }) => (
 );
 
 const DiscoverSection = () => {
-  const data = [
-    { image: hotel, title: "Hotel G" },
-    { image: hotel, title: "Hotel H" },
-    { image: hotel, title: "Hotel I" },
-    { image: hotel, title: "Hotel J" },
-    { image: hotel, title: "Hotel K" },
-    { image: hotel, title: "Hotel L" },
-  ];
+  const navigate = useNavigate();
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const handleHotelClick = (hotelId) => {
+    navigate(`/hotels/${hotelId}`);
+  };
+
+  useEffect(() => {
+    const loadHotels = async () => {
+      try {
+        const hotels = await fetchAllHotels();
+        // Shuffle all hotels
+        const shuffledAll = hotels.sort(() => Math.random() - 0.5);
+
+        // Featured uses first 6; Discover should use the remaining hotels.
+        const remaining = shuffledAll.slice(6);
+
+        // Take up to 6 hotels from remaining for Discover
+        let discoverSlice = remaining.slice(0, 6);
+
+        // If there are no remaining hotels, fall back to using the first hotels
+        if (discoverSlice.length === 0 && shuffledAll.length > 0) {
+          console.warn("DiscoverSection: no remaining hotels after featured slice — falling back to first hotels", { totalHotels: shuffledAll.length });
+          discoverSlice = shuffledAll.slice(0, Math.min(6, shuffledAll.length));
+        }
+
+        console.debug("DiscoverSection: totalHotels", shuffledAll.length, "discoverCount", discoverSlice.length);
+
+        const mappedData = discoverSlice.map((hotel) => ({
+          id: hotel.hotel_id,
+          image: hotel.images && hotel.images.length > 0 
+            ? `http://localhost:5000/${hotel.images[0].image_url.replace(/\\/g, "/")}` 
+            : defaultHotel,
+          title: hotel.name,
+        }));
+
+        setData(mappedData);
+      } catch (error) {
+        console.error("Error loading discover hotels:", error);
+        setData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadHotels();
+  }, []);
 
   const settings = {
     dots: true,
@@ -57,14 +98,27 @@ const DiscoverSection = () => {
     ],
   };
 
+  if (loading) {
+    return <div className="py-10 text-center">Loading Discover Hotels...</div>;
+  }
+
+  if (data.length === 0) {
+    return <div className="py-10 text-center">No hotels available</div>;
+  }
+
   return (
     <div className="py-10 relative">
       <div className="max-w-[1200px] mx-auto px-6 relative">
         <h1 className="text-3xl font-semibold mb-5">Discover Hotels</h1>
         <Slider {...settings}>
-          {data.map((item, index) => (
-            <div key={index} className="px-3">
-              <HotelCards image={item.image} title={item.title} />
+          {data.map((item) => (
+            <div key={item.id} className="px-3">
+              <div 
+                className="cursor-pointer"
+                onClick={() => handleHotelClick(item.id)}
+              >
+                <HotelCards image={item.image} title={item.title} />
+              </div>
             </div>
           ))}
         </Slider>

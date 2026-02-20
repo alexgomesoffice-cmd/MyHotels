@@ -9,6 +9,7 @@ import { DateRange } from "react-date-range";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 import { format } from "date-fns";
+import { searchAvailableHotels } from "../../../services/search.api";
 
 const destinations = [
   "Dhaka",
@@ -25,9 +26,7 @@ const HeroSection = () => {
 
   const [location, setLocation] = useState(destinations[0]);
   const [locationOpen, setLocationOpen] = useState(false);
-
   const [rooms, setRooms] = useState(1);
-
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [guestOpen, setGuestOpen] = useState(false);
 
@@ -58,22 +57,44 @@ const HeroSection = () => {
       document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSearch = () => {
-    navigate(
-      `/hotels?location=${location}&checkIn=${format(
-        dateRange[0].startDate,
-        "yyyy-MM-dd"
-      )}&checkOut=${format(
-        dateRange[0].endDate,
-        "yyyy-MM-dd"
-      )}&rooms=${rooms}`
-    );
+  const handleSearch = async () => {
+    const startDate = dateRange[0].startDate;
+    const endDate = dateRange[0].endDate;
+
+    if (endDate <= startDate) {
+      alert(
+        "Please select a check-out date that is later than your check-in date."
+      );
+      return;
+    }
+
+    try {
+      const payload = {
+        location,
+        checkIn: format(startDate, "yyyy-MM-dd"),
+        checkOut: format(endDate, "yyyy-MM-dd"),
+        rooms: Number(rooms),
+      };
+
+      console.log("HERO SEARCH PAYLOAD:", payload);
+
+      const data = await searchAvailableHotels(payload);
+
+      navigate("/hero-search", {
+        state: {
+          searchResults: data,
+          filters: payload,
+        },
+      });
+    } catch (err) {
+      console.error("Search failed:", err?.response?.data || err);
+      alert("Unable to search hotels. Please try again.");
+    }
   };
 
   return (
     <section className="bg-blue-800 text-white py-16 px-4">
       <div className="max-w-6xl mx-auto text-center">
-
         <h1 className="text-4xl md:text-6xl font-bold mb-4">
           LET&apos;S TRAVEL!
         </h1>
@@ -82,7 +103,6 @@ const HeroSection = () => {
         </p>
 
         <div className="bg-white rounded-xl p-4 flex flex-col gap-3 md:flex-row md:items-center">
-
           {/* DESTINATION */}
           <div
             ref={locationRef}
@@ -131,11 +151,9 @@ const HeroSection = () => {
 
             {calendarOpen && (
               <div
-                className="
-                  absolute top-full mt-2 z-50 bg-white rounded-2xl overflow-hidden
-                  left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0
-                  border border-gray-200
-                "
+                className="absolute top-full mt-2 z-50 bg-white rounded-2xl overflow-hidden
+                left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0
+                border border-gray-200"
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => e.stopPropagation()}
               >
@@ -154,39 +172,32 @@ const HeroSection = () => {
             )}
           </div>
 
-          {/* ROOMS ONLY (UI SAME AS BEFORE) */}
+          {/* ROOMS */}
           <div
             ref={guestRef}
             onClick={() => setGuestOpen(true)}
             className="relative flex items-center gap-2 border border-gray-300 rounded-lg px-4 py-3 flex-1 cursor-pointer"
           >
             <UserIcon className="w-6 h-6 text-gray-500" />
-            <span className="text-black">
-              {rooms} room
-            </span>
+            <span className="text-black">{rooms} room</span>
 
             {guestOpen && (
               <div
                 className="absolute top-full mt-2 z-50 bg-white text-black rounded-xl p-4 w-full cursor-default border border-gray-200"
                 onClick={(e) => e.stopPropagation()}
               >
-                {/* Rooms */}
                 <div className="flex justify-between items-center">
                   <span>Rooms</span>
                   <div className="flex items-center gap-3">
                     <button
-                      onClick={() =>
-                        setRooms(clamp(rooms - 1, 1, 20))
-                      }
+                      onClick={() => setRooms(clamp(rooms - 1, 1, 20))}
                       className="w-8 h-8 border rounded-md hover:bg-gray-100 cursor-pointer"
                     >
                       −
                     </button>
                     <span>{rooms}</span>
                     <button
-                      onClick={() =>
-                        setRooms(clamp(rooms + 1, 1, 20))
-                      }
+                      onClick={() => setRooms(clamp(rooms + 1, 1, 20))}
                       className="w-8 h-8 border rounded-md hover:bg-gray-100 cursor-pointer"
                     >
                       +

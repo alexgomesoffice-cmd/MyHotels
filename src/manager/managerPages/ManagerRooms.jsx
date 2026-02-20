@@ -15,6 +15,8 @@ const ManagerRooms = () => {
     price: "",
   });
 
+  const [images, setImages] = useState([]);
+
   useEffect(() => {
     fetchRooms();
     fetchHotels();
@@ -57,16 +59,37 @@ const ManagerRooms = () => {
     });
   };
 
+  const handleImageChange = (e) => {
+    setImages(e.target.files);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
+    // Validate price is not negative
+    if (Number(formData.price) < 0) {
+      setError("Price cannot be negative");
+      return;
+    }
+
     try {
-      await api.post("/manager/rooms", {
-        ...formData,
-        hotel_id: Number(formData.hotel_id),
-        hotel_room_type_id: Number(formData.hotel_room_type_id),
-        price: Number(formData.price),
+      const data = new FormData();
+
+      data.append("hotel_id", Number(formData.hotel_id));
+      data.append(
+        "hotel_room_type_id",
+        Number(formData.hotel_room_type_id)
+      );
+      data.append("room_number", formData.room_number);
+      data.append("price", Number(formData.price));
+
+      for (let i = 0; i < images.length; i++) {
+        data.append("images", images[i]);
+      }
+
+      await api.post("/manager/rooms", data, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       setFormData({
@@ -76,10 +99,16 @@ const ManagerRooms = () => {
         price: "",
       });
 
+      setImages([]);
       fetchRooms();
-    } catch {
-      setError("Failed to create room");
-    }
+    } catch (err) {
+  console.error(err);
+  setError(
+    err.response?.data?.message ||
+    "Failed to create room"
+  );
+}
+
   };
 
   if (loading) {
@@ -92,14 +121,12 @@ const ManagerRooms = () => {
 
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
-      {/* ADD ROOM */}
       <form
         onSubmit={handleSubmit}
         className="bg-white p-4 rounded shadow mb-6 space-y-4"
       >
         <h2 className="font-semibold">Add New Room</h2>
 
-        {/* HOTEL DROPDOWN */}
         <select
           name="hotel_id"
           value={formData.hotel_id}
@@ -115,7 +142,6 @@ const ManagerRooms = () => {
           ))}
         </select>
 
-        {/* ROOM TYPE */}
         <select
           name="hotel_room_type_id"
           value={formData.hotel_room_type_id}
@@ -150,7 +176,17 @@ const ManagerRooms = () => {
           placeholder="Price per night"
           value={formData.price}
           onChange={handleChange}
+          min="0"
+          step="0.01"
           required
+          className="w-full border px-3 py-2 rounded"
+        />
+
+        <input
+          type="file"
+          multiple
+          accept="image/*"
+          onChange={handleImageChange}
           className="w-full border px-3 py-2 rounded"
         />
 
@@ -159,7 +195,6 @@ const ManagerRooms = () => {
         </button>
       </form>
 
-      {/* ROOM LIST */}
       <div className="bg-white rounded shadow">
         <table className="w-full text-left">
           <thead className="bg-gray-100">

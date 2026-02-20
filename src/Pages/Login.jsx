@@ -40,7 +40,7 @@ const Login = () => {
       // notify Navbar immediately
       window.dispatchEvent(new Event("storage"));
 
-      // REDIRECT LOGIC
+      // 🔁 REDIRECT LOGIC
       const redirectTo = location.state?.redirectTo;
 
       if (redirectTo) {

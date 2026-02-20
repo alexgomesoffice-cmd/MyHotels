@@ -40,11 +40,7 @@ const AdminSidebar = () => {
           </NavLink>
         </li>
 
-        <li>
-          <NavLink to="/admin/security" className={linkClass}>
-            System & Security
-          </NavLink>
-        </li>
+        
       </ul>
     </aside>
   );

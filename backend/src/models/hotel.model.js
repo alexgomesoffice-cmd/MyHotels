@@ -21,25 +21,28 @@ export async function createHotel({
 }
 
 /* ================= PUBLIC > FETCH APPROVED HOTELS ================= */
-/* ✅ SCHEMA-SAFE + NO 500 IF NO ROOMS */
 export async function getAllApprovedHotels() {
   const [rows] = await pool.query(`
     SELECT 
-      h.hotel_id,
-      h.name,
-      h.address,
-      h.description,
-      ht.name AS hotel_type,
-      COALESCE(MIN(hrd.price), 0) AS price_per_night
-    FROM hotel h
-    JOIN hotel_type ht 
-      ON h.hotel_type_id = ht.hotel_type_id
-    LEFT JOIN hotel_room_details hrd
-      ON h.hotel_id = hrd.hotel_id
-      AND hrd.approval_status = 'APPROVED'
-    WHERE h.approval_status = 'APPROVED'
-    GROUP BY h.hotel_id
-    ORDER BY h.created_at DESC
+  h.hotel_id,
+  h.name,
+  h.address,
+  h.description,
+  ht.name AS hotel_type,
+  COALESCE(MIN(hrd.price), 0) AS price_per_night,
+  MIN(hi.image_url) AS image
+FROM hotel h
+JOIN hotel_type ht
+  ON h.hotel_type_id = ht.hotel_type_id
+LEFT JOIN hotel_room_details hrd
+  ON h.hotel_id = hrd.hotel_id
+  AND hrd.approval_status = 'APPROVED'
+LEFT JOIN hotel_images hi
+  ON h.hotel_id = hi.hotel_id
+WHERE h.approval_status = 'APPROVED'
+GROUP BY h.hotel_id
+ORDER BY h.created_at DESC;
+
   `);
 
   return rows;

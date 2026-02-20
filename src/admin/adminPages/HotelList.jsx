@@ -10,7 +10,7 @@ const HotelList = () => {
       setLoading(true);
       const data = await fetchAllAdminHotels();
 
-      // ✅ FILTER ONLY APPROVED HOTELS (REQUIRED FIX)
+      // FILTER ONLY APPROVED HOTELS (REQUIRED FIX)
       const approvedOnly = data.filter(
         (hotel) => hotel.approval_status === "APPROVED"
       );
@@ -65,6 +65,9 @@ const HotelList = () => {
                 Name
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Manager Name
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Location
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -81,6 +84,7 @@ const HotelList = () => {
               <tr key={hotel.hotel_id}>
                 <td className="px-6 py-4">{hotel.hotel_id}</td>
                 <td className="px-6 py-4">{hotel.name}</td>
+                <td className="px-6 py-4">{hotel.created_by}</td>
                 <td className="px-6 py-4">{hotel.address}</td>
                 <td className="px-6 py-4">
                   <span className="px-2 py-1 rounded bg-blue-100 text-blue-700">
@@ -100,7 +104,7 @@ const HotelList = () => {
 
             {hotels.length === 0 && (
               <tr>
-                <td colSpan="6" className="p-4 text-center text-gray-500">
+                <td colSpan="7" className="p-4 text-center text-gray-500">
                   No hotels found
                 </td>
               </tr>

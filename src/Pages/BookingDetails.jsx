@@ -117,7 +117,7 @@ const BookingDetails = () => {
             </p>
 
             <p>
-              <strong>Price / Night:</strong> ${room.price || room.room_price || 0}
+              <strong>Price / Night:</strong> TK {room.price || room.room_price || 0}
             </p>
 
             <div>
@@ -155,7 +155,7 @@ const BookingDetails = () => {
                 onChange={(e) => setRoomsCount(Number(e.target.value))}
                 className="border border-gray-300 rounded px-3 py-2 w-full"
               >
-                {[1, 2, 3, 4, 5].map((num) => (
+                {[1, 2, 3, 4, 5,6].map((num) => (
                   <option key={num} value={num}>
                     {num}
                   </option>

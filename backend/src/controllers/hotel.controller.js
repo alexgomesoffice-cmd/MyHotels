@@ -6,11 +6,20 @@ import {
   getPendingHotels,
   getHotelsByManager,
 } from "../models/hotel.model.js";
+import { pool } from "../db.js";
+import { getHotelImagesByHotelId } from "../models/hotelImage.model.js";
+
 
 /* ================= PUBLIC ================= */
 export const fetchHotels = async (req, res) => {
   try {
     const hotels = await getAllApprovedHotels();
+
+    // Attach images to each hotel
+    for (const hotel of hotels) {
+      hotel.images = await getHotelImagesByHotelId(hotel.hotel_id);
+    }
+
     res.json(hotels);
   } catch (error) {
     console.error("FETCH HOTELS ERROR:", error);
@@ -20,13 +29,21 @@ export const fetchHotels = async (req, res) => {
   }
 };
 
+
 export const fetchHotelById = async (req, res) => {
   try {
     const hotel = await getHotelById(req.params.id);
-    if (!hotel) {
+
+    if (!hotel || hotel.approval_status !== "APPROVED") {
       return res.status(404).json({ message: "Hotel not found" });
     }
-    res.json(hotel);
+
+    const images = await getHotelImagesByHotelId(hotel.hotel_id);
+
+    res.json({
+      ...hotel,
+      images,
+    });
   } catch (error) {
     console.error("FETCH HOTEL ERROR:", error);
     res.status(500).json({
@@ -35,10 +52,16 @@ export const fetchHotelById = async (req, res) => {
   }
 };
 
+
 /* ================= HOTEL MANAGER ================= */
 export const addHotel = async (req, res) => {
   try {
-    const hotelId = await createHotel(req.body);
+    // FIXED #3: Explicitly set created_by_user_id from authenticated user
+    const hotelData = {
+      ...req.body,
+      created_by_user_id: req.user.user_id,
+    };
+    const hotelId = await createHotel(hotelData);
     res.status(201).json({
       message: "Hotel added successfully. Waiting for admin approval.",
       hotel_id: hotelId,
@@ -104,5 +127,71 @@ export const fetchMyHotels = async (req, res) => {
     res.status(500).json({
       message: "Failed to fetch hotels",
     });
+  }
+};
+
+/* ================= ADMIN : FORCE DELETE HOTEL ================= */
+export const adminDeleteHotel = async (req, res) => {
+  const connection = await pool.getConnection();
+
+  try {
+    const { hotel_id } = req.params;
+
+    if (!hotel_id) {
+      return res.status(400).json({ message: "hotel_id is required" });
+    }
+
+    await connection.beginTransaction();
+
+    // delete room bookings
+    await connection.query(
+      `
+      DELETE hrb
+      FROM hotel_room_booking hrb
+      JOIN hotel_room_details hrd
+        ON hrb.hotel_room_details_id = hrd.hotel_room_details_id
+      WHERE hrd.hotel_id = ?
+      `,
+      [hotel_id]
+    );
+
+    // delete checkouts
+    await connection.query(
+      `
+      DELETE FROM checkout
+      WHERE booking_id IN (
+        SELECT booking_id FROM booking WHERE hotel_id = ?
+      )
+      `,
+      [hotel_id]
+    );
+
+    // delete bookings
+    await connection.query(
+      `DELETE FROM booking WHERE hotel_id = ?`,
+      [hotel_id]
+    );
+
+    // delete rooms
+    await connection.query(
+      `DELETE FROM hotel_room_details WHERE hotel_id = ?`,
+      [hotel_id]
+    );
+
+    // delete hotel
+    await connection.query(
+      `DELETE FROM hotel WHERE hotel_id = ?`,
+      [hotel_id]
+    );
+
+    await connection.commit();
+
+    res.json({ message: "Hotel deleted successfully" });
+  } catch (error) {
+    await connection.rollback();
+    console.error("ADMIN DELETE HOTEL ERROR:", error);
+    res.status(500).json({ message: "Failed to delete hotel" });
+  } finally {
+    connection.release();
   }
 };

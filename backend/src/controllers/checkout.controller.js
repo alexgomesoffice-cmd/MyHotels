@@ -3,6 +3,7 @@ import {
   getCheckoutByBooking,
   getAllCheckouts,
 } from "../models/checkout.model.js";
+import { pool } from "../db.js";
 
 /* ================= USER > CREATE CHECKOUT ================= */
 export const checkoutBooking = async (req, res) => {
@@ -12,6 +13,32 @@ export const checkoutBooking = async (req, res) => {
     if (!booking_id || !total_amount) {
       return res.status(400).json({
         message: "booking_id and total_amount are required",
+      });
+    }
+
+    // Validate total_amount is greater than 0
+    if (Number(total_amount) <= 0) {
+      return res.status(400).json({
+        message: "Total amount must be greater than 0",
+      });
+    }
+
+    // Verify the total_amount matches the booking's total_price
+    const [[booking]] = await pool.query(
+      `SELECT total_price FROM booking WHERE booking_id = ?`,
+      [booking_id]
+    );
+
+    if (!booking) {
+      return res.status(404).json({
+        message: "Booking not found",
+      });
+    }
+
+    // Check if the provided total_amount matches the booking total_price
+    if (Number(total_amount) !== Number(booking.total_price)) {
+      return res.status(400).json({
+        message: `Total amount mismatch. Expected: ${booking.total_price}, Provided: ${total_amount}`,
       });
     }
 

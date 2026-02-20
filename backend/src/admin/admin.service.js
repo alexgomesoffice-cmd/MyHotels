@@ -1,78 +1,111 @@
-import { pool } from "../db.js";
-
-/* ================= ADMIN DASHBOARD ================= */
-
-export const getDashboardStats = async () => {
-  const [[totalHotels]] = await pool.query(
-    `SELECT COUNT(*) AS count FROM hotel`
-  );
-
-  const [[pendingHotels]] = await pool.query(
-    `SELECT COUNT(*) AS count FROM hotel WHERE approval_status = 'PENDING'`
-  );
-
-  const [[totalRooms]] = await pool.query(
-    `SELECT COUNT(*) AS count FROM hotel_room_details`
-  );
-
-  const [[pendingRooms]] = await pool.query(
-    `SELECT COUNT(*) AS count
-     FROM hotel_room_details
-     WHERE approval_status = 'PENDING'`
-  );
-
-  const [[totalBookings]] = await pool.query(
-    `SELECT COUNT(*) AS count FROM booking`
-  );
-
-  return {
-    totalHotels: totalHotels.count,
-    pendingHotels: pendingHotels.count,
-    totalRooms: totalRooms.count,
-    pendingRooms: pendingRooms.count,
-    totalBookings: totalBookings.count,
-  };
-};
-
-/* ================= HOTELS ================= */
-
-export const getPendingHotels = async () => {
-  const [rows] = await pool.query(`
-    SELECT
-      h.hotel_id,
-      h.name,
-      h.address,
-      h.created_at,
-      u.name AS created_by,
-      ht.name AS hotel_type
-    FROM hotel h
-    JOIN user u ON h.created_by_user_id = u.user_id
-    JOIN hotel_type ht ON h.hotel_type_id = ht.hotel_type_id
-    WHERE h.approval_status = 'PENDING'
-    ORDER BY h.created_at DESC
-  `);
-
-  return rows;
-};
-
-export const updateHotelStatus = async (hotel_id, status, admin_id) => {
+export * from "../services/admin.service.js";
   if (!["APPROVED", "REJECTED"].includes(status)) {
     throw new Error("Invalid hotel status");
   }
 
-  const [result] = await pool.query(
-    `
-    UPDATE hotel
-    SET approval_status = ?, approved_by_admin_id = ?
-    WHERE hotel_id = ?
-    `,
-    [status, admin_id, hotel_id]
-  );
+  const connection = await pool.getConnection();
 
-  if (result.affectedRows === 0) {
-    throw new Error("Hotel not found");
-  }
-};
+  try {
+    await connection.beginTransaction();
+
+    // If REJECTED, delete all hotel images from database and file system
+    if (status === "REJECTED") {
+      const [images] = await connection.query(
+        `SELECT image_url FROM hotel_images WHERE hotel_id = ?`,
+        [hotel_id]
+      );
+
+      // Delete images from file system
+      for (const image of images) {
+        try {
+          const imagePath = path.join(process.cwd(), image.image_url);
+          await fs.unlink(imagePath);
+        } catch (err) {
+          console.warn(`Failed to delete image file: ${image.image_url}`, err.message);
+          // Continue even if file deletion fails
+        }
+      }
+
+      // Delete images from database
+      await connection.query(
+        `DELETE FROM hotel_images WHERE hotel_id = ?`,
+        [hotel_id]
+      );
+
+      // Delete room images for this hotel too
+      const [roomImages] = await connection.query(
+        `
+        SELECT hi.image_url
+        FROM hotel_room_images hi
+        JOIN hotel_room_details hrd ON hi.hotel_room_details_id = hrd.hotel_room_details_id
+        WHERE hrd.hotel_id = ?
+        `,
+        [hotel_id]
+      );
+
+      for (const image of roomImages) {
+        try {
+          const imagePath = path.join(process.cwd(), image.image_url);
+          await fs.unlink(imagePath);
+        } catch (err) {
+          console.warn(`Failed to delete room image file: ${image.image_url}`, err.message);
+        }
+      }
+
+      // Delete room images from database
+      await connection.query(
+        `
+        DELETE hi FROM hotel_room_images hi
+        JOIN hotel_room_details hrd ON hi.hotel_room_details_id = hrd.hotel_room_details_id
+        WHERE hrd.hotel_id = ?
+        `,
+        [hotel_id]
+      );
+    }
+
+    //  Update hotel
+    const [hotelResult] = await connection.query(
+      `
+      UPDATE hotel
+      SET approval_status = ?, approved_by_admin_id = ?
+      WHERE hotel_id = ?
+      `,
+      [status, admin_id, hotel_id]
+    );
+
+    if (hotelResult.affectedRows === 0) {
+      throw new Error("Hotel not found");
+    }
+
+    // FIXED #5: Add audit logging for admin actions
+    await logAudit({
+      user_id: admin_id,
+      action: `${status}_HOTEL`,
+      entity_type: "HOTEL",
+      entity_id: hotel_id,
+      oldValue: { approval_status: "PENDING" },
+      newValue: { approval_status: status },
+      ipAddress: null,
+      userAgent: null,
+    });
+
+    //  Cascade decision to rooms
+    await connection.query(
+      `
+      UPDATE hotel_room_details
+      SET approval_status = ?, approved_by_admin_id = ?
+      WHERE hotel_id = ?
+      `,
+      [status, admin_id, hotel_id]
+    );
+
+    await connection.commit();
+  } catch (err) {
+    await connection.rollback();
+    throw err;
+  } finally {
+    connection.release();
+  };
 
 /* ================= ROOMS ================= */
 
@@ -102,19 +135,88 @@ export const updateRoomStatus = async (room_id, status, admin_id) => {
     throw new Error("Invalid room status");
   }
 
-  const [result] = await pool.query(
-    `
-    UPDATE hotel_room_details
-    SET approval_status = ?, approved_by_admin_id = ?
-    WHERE hotel_room_details_id = ?
-    `,
-    [status, admin_id, room_id]
-  );
+  const connection = await pool.getConnection();
 
-  if (result.affectedRows === 0) {
-    throw new Error("Room not found");
+  try {
+    await connection.beginTransaction();
+
+    // Check hotel status
+    const [[room]] = await connection.query(
+      `
+      SELECT h.approval_status
+      FROM hotel_room_details r
+      JOIN hotel h ON r.hotel_id = h.hotel_id
+      WHERE r.hotel_room_details_id = ?
+      `,
+      [room_id]
+    );
+
+    if (!room) {
+      throw new Error("Room not found");
+    }
+
+    if (status === "APPROVED" && room.approval_status !== "APPROVED") {
+      throw new Error(
+        "Cannot approve room while hotel is not approved"
+      );
+    }
+
+    // If REJECTED, delete all room images from database and file system
+    if (status === "REJECTED") {
+      const [images] = await connection.query(
+        `SELECT image_url FROM hotel_room_images WHERE hotel_room_details_id = ?`,
+        [room_id]
+      );
+
+      // Delete images from file system
+      for (const image of images) {
+        try {
+          const imagePath = path.join(process.cwd(), image.image_url);
+          await fs.unlink(imagePath);
+        } catch (err) {
+          console.warn(`Failed to delete room image file: ${image.image_url}`, err.message);
+          // Continue even if file deletion fails
+        }
+      }
+
+      // Delete images from database
+      await connection.query(
+        `DELETE FROM hotel_room_images WHERE hotel_room_details_id = ?`,
+        [room_id]
+      );
+    }
+
+    // Update room
+    await connection.query(
+      `
+      UPDATE hotel_room_details
+      SET approval_status = ?, approved_by_admin_id = ?
+      WHERE hotel_room_details_id = ?
+      `,
+      [status, admin_id, room_id]
+    );
+
+    // FIXED #5: Add audit logging for room status changes
+    await logAudit({
+      user_id: admin_id,
+      action: `${status}_ROOM`,
+      entity_type: "ROOM",
+      entity_id: room_id,
+      oldValue: { approval_status: "PENDING" },
+      newValue: { approval_status: status },
+      ipAddress: null,
+      userAgent: null,
+    });
+
+    await connection.commit();
+  } catch (err) {
+    await connection.rollback();
+    throw err;
+  } finally {
+    connection.release();
   }
 };
+
 
 /* ================= BOOKINGS ================= */
 
@@ -151,11 +253,10 @@ export const getAllUsers = async () => {
       u.user_id,
       u.name,
       u.email,
-      r.name AS role,
+      u.role_id,
       u.is_blocked,
       u.created_at
     FROM user u
-    JOIN role r ON u.role_id = r.role_id
     ORDER BY u.created_at DESC
   `);
 
@@ -198,12 +299,252 @@ export const getAllHotels = async () => {
   return rows;
 };
 
+
+
+/* ================= HOTELS ================= */
+
+
 export const deleteHotel = async (hotelId) => {
-  await pool.query(
-    `
-    DELETE FROM hotel
-    WHERE hotel_id = ?
-    `,
-    [hotelId]
-  );
+  const connection = await pool.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    // Delete all hotel images from database and file system
+    const [hotelImages] = await connection.query(
+      `SELECT image_url FROM hotel_images WHERE hotel_id = ?`,
+      [hotelId]
+    );
+
+    // Delete hotel images from file system
+    for (const image of hotelImages) {
+      try {
+        const imagePath = path.join(process.cwd(), image.image_url);
+        await fs.unlink(imagePath);
+      } catch (err) {
+        console.warn(`Failed to delete hotel image file: ${image.image_url}`, err.message);
+      }
+    }
+
+    // Delete all room images for this hotel from database and file system
+    const [roomImages] = await connection.query(
+      `
+      SELECT hi.image_url
+      FROM hotel_room_images hi
+      JOIN hotel_room_details hrd ON hi.hotel_room_details_id = hrd.hotel_room_details_id
+      WHERE hrd.hotel_id = ?
+      `,
+      [hotelId]
+    );
+
+    // Delete room images from file system
+    for (const image of roomImages) {
+      try {
+        const imagePath = path.join(process.cwd(), image.image_url);
+        await fs.unlink(imagePath);
+      } catch (err) {
+        console.warn(`Failed to delete room image file: ${image.image_url}`, err.message);
+      }
+    }
+
+    // Disable FK checks (admin hard delete)
+    await connection.query(`SET FOREIGN_KEY_CHECKS = 0`);
+
+    // Delete hotel images from database
+    await connection.query(
+      `DELETE FROM hotel_images WHERE hotel_id = ?`,
+      [hotelId]
+    );
+
+    // Delete room images from database
+    await connection.query(
+      `
+      DELETE hi FROM hotel_room_images hi
+      JOIN hotel_room_details hrd ON hi.hotel_room_details_id = hrd.hotel_room_details_id
+      WHERE hrd.hotel_id = ?
+      `,
+      [hotelId]
+    );
+
+    // Delete hotel_room_booking (via rooms)
+    await connection.query(
+      `
+      DELETE hrb
+      FROM hotel_room_booking hrb
+      JOIN hotel_room_details hrd
+        ON hrb.hotel_room_details_id = hrd.hotel_room_details_id
+      WHERE hrd.hotel_id = ?
+      `,
+      [hotelId]
+    );
+
+    // Delete bookings that are now orphaned
+    await connection.query(
+      `
+      DELETE b
+      FROM booking b
+      LEFT JOIN hotel_room_booking hrb
+        ON b.booking_id = hrb.booking_id
+      WHERE hrb.booking_id IS NULL
+      `
+    );
+
+    // Delete rooms
+    await connection.query(
+      `DELETE FROM hotel_room_details WHERE hotel_id = ?`,
+      [hotelId]
+    );
+
+    // Delete hotel
+    await connection.query(
+      `DELETE FROM hotel WHERE hotel_id = ?`,
+      [hotelId]
+    );
+
+    // Re-enable FK checks
+    await connection.query(`SET FOREIGN_KEY_CHECKS = 1`);
+
+    await connection.commit();
+  } catch (err) {
+    await connection.rollback();
+    throw err;
+  } finally {
+    connection.release();
+  }
+};
+
+/* ================= DELETE USER ================= */
+export const deleteUser = async (user_id) => {
+  const connection = await pool.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    // 1) Check if user exists
+    const [[user]] = await connection.query(
+      `SELECT role_id FROM user WHERE user_id = ?`,
+      [user_id]
+    );
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // 2) If user is a Hotel Manager, delete all their hotels and rooms
+    if (user.role_id === 3) { // role_id 3 = Hotel_Manager
+      // Get all hotel IDs created by this manager
+      const [hotels] = await connection.query(
+        `SELECT hotel_id FROM hotel WHERE created_by_user_id = ?`,
+        [user_id]
+      );
+
+      // For each hotel, delete all associated data
+      for (const hotel of hotels) {
+        const hotelId = hotel.hotel_id;
+
+        // Delete hotel images
+        const [images] = await connection.query(
+          `SELECT image_url FROM hotel_images WHERE hotel_id = ?`,
+          [hotelId]
+        );
+
+        for (const image of images) {
+          try {
+            const imagePath = path.join(process.cwd(), image.image_url);
+            await fs.unlink(imagePath);
+          } catch (err) {
+            console.warn(`Failed to delete image file: ${image.image_url}`, err.message);
+          }
+        }
+
+        // Delete room images
+        const [roomImages] = await connection.query(
+          `
+          SELECT hi.image_url
+          FROM hotel_room_images hi
+          JOIN hotel_room_details hrd ON hi.hotel_room_details_id = hrd.hotel_room_details_id
+          WHERE hrd.hotel_id = ?
+          `,
+          [hotelId]
+        );
+
+        for (const image of roomImages) {
+          try {
+            const imagePath = path.join(process.cwd(), image.image_url);
+            await fs.unlink(imagePath);
+          } catch (err) {
+            console.warn(`Failed to delete room image file: ${image.image_url}`, err.message);
+          }
+        }
+
+        // Delete all bookings and their associations for this hotel's rooms
+        await connection.query(
+          `
+          DELETE b FROM booking b
+          JOIN hotel_room_booking hrb ON b.booking_id = hrb.booking_id
+          JOIN hotel_room_details hrd ON hrb.hotel_room_details_id = hrd.hotel_room_details_id
+          WHERE hrd.hotel_id = ?
+          `,
+          [hotelId]
+        );
+
+        // Delete hotel_room_booking records
+        await connection.query(
+          `
+          DELETE hrb FROM hotel_room_booking hrb
+          JOIN hotel_room_details hrd ON hrb.hotel_room_details_id = hrd.hotel_room_details_id
+          WHERE hrd.hotel_id = ?
+          `,
+          [hotelId]
+        );
+
+        // Delete room images from database
+        await connection.query(
+          `
+          DELETE hi FROM hotel_room_images hi
+          JOIN hotel_room_details hrd ON hi.hotel_room_details_id = hrd.hotel_room_details_id
+          WHERE hrd.hotel_id = ?
+          `,
+          [hotelId]
+        );
+
+        // Delete hotel_room_details (rooms)
+        await connection.query(
+          `DELETE FROM hotel_room_details WHERE hotel_id = ?`,
+          [hotelId]
+        );
+
+        // Delete hotel images from database
+        await connection.query(
+          `DELETE FROM hotel_images WHERE hotel_id = ?`,
+          [hotelId]
+        );
+
+        // Delete hotel
+        await connection.query(
+          `DELETE FROM hotel WHERE hotel_id = ?`,
+          [hotelId]
+        );
+      }
+    }
+
+    // 3) Delete user_details
+    await connection.query(
+      `DELETE FROM user_details WHERE user_id = ?`,
+      [user_id]
+    );
+
+    // 4) Delete the user
+    await connection.query(
+      `DELETE FROM user WHERE user_id = ?`,
+      [user_id]
+    );
+
+    await connection.commit();
+  } catch (err) {
+    await connection.rollback();
+    throw err;
+  } finally {
+    connection.release();
+  }
 };

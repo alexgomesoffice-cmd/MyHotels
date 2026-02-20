@@ -40,6 +40,8 @@ const Hotels = () => {
       )
     : hotels;
 
+      console.log(hotels);
+
   return (
     <>
       <Navbar />
