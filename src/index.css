@@ -1,4 +1,85 @@
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 217 91% 60%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 199 89% 48%;
+  --secondary-foreground: 0 0% 100%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --muted: 214 32% 91%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 199 89% 48%;
+  --accent-foreground: 0 0% 100%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: 222 47% 11%;
+  --foreground: 0 0% 100%;
+  --border: 214 32% 20%;
+  --input: 214 32% 20%;
+  --ring: 217 91% 60%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 222 47% 11%;
+  --secondary: 199 89% 48%;
+  --secondary-foreground: 222 47% 11%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 222 47% 11%;
+  --muted: 214 32% 20%;
+  --muted-foreground: 215 16% 65%;
+  --accent: 199 89% 48%;
+  --accent-foreground: 222 47% 11%;
+  --popover: 222 47% 11%;
+  --popover-foreground: 0 0% 100%;
+  --card: 222 47% 11%;
+  --card-foreground: 0 0% 100%;
+}
+
 @import "tailwindcss";
-html {
-  overflow-y: scroll;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    overflow-y: scroll;
+  }
+
+  body {
+    @apply bg-white text-slate-950;
+  }
+
+  .dark body {
+    @apply bg-slate-950 text-white;
+  }
+}
+
+.glass {
+  background: hsla(0, 0%, 100%, 0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid hsla(214, 32%, 91%, 0.3);
+  border-radius: 0.5rem;
+}
+
+.dark .glass {
+  background: hsla(222, 47%, 11%, 0.3);
+  border-color: hsla(214, 32%, 20%, 0.3);
+}
+
+.glass-strong {
+  background: hsla(0, 0%, 100%, 0.5);
+  backdrop-filter: blur(20px);
+  border: 1px solid hsla(214, 32%, 91%, 0.4);
+  border-radius: 0.5rem;
+}
+
+.dark .glass-strong {
+  background: hsla(222, 47%, 11%, 0.5);
+  border-color: hsla(214, 32%, 20%, 0.4);
 }

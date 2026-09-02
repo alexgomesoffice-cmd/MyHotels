@@ -1,12 +1,15 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { searchHotels } from "../../data/api";
+import { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X, Hotel, Sun, Moon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useTheme } from "@/hooks/use-theme";
 
 const Navbar = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
     if (!storedUser) return null;
-
     try {
       return JSON.parse(storedUser);
     } catch {
@@ -14,15 +17,11 @@ const Navbar = () => {
     }
   });
 
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [suggestions, setSuggestions] = useState([]);
-  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
-
+  const location = useLocation();
   const navigate = useNavigate();
-  const searchRef = useRef(null);
+  const { theme, toggleTheme } = useTheme();
 
-  // keep Navbar synced with login/logout
+  // Sync user with login/logout
   useEffect(() => {
     const syncUser = () => {
       const storedUser = localStorage.getItem("user");
@@ -30,7 +29,6 @@ const Navbar = () => {
         setUser(null);
         return;
       }
-
       try {
         setUser(JSON.parse(storedUser));
       } catch {
@@ -42,213 +40,236 @@ const Navbar = () => {
     return () => window.removeEventListener("storage", syncUser);
   }, []);
 
-  // Close suggestions on outside click
+  // Scroll detection
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (searchRef.current && !searchRef.current.contains(e.target)) {
-        setSuggestionsOpen(false);
-      }
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () =>
-      document.removeEventListener("mousedown", handleClickOutside);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // 🔹 BACKEND SEARCH (LOGIC FIXED, UI UNCHANGED)
-  const handleChange = async (e) => {
-    const value = e.target.value;
-    setSearchTerm(value);
-
-    if (!value.trim()) {
-      setSuggestions([]);
-      setSuggestionsOpen(false);
-      return;
-    }
-
-    try {
-      const results = await searchHotels(value);
-
-const mappedResults = results.map((hotel) => ({
-  ...hotel,
-  id: hotel.hotel_id,                     //  REQUIRED
-  name: hotel.name || hotel.hotel_name,   //  SAFE
-  image: hotel.images && hotel.images.length > 0 
-    ? `http://localhost:5000/${hotel.images[0].image_url.replace(/\\/g, "/")}` 
-    : "/assets/Img/hotel.jpg", // FALLBACK
-}));
-
-setSuggestions(mappedResults.slice(0, 5));
-setSuggestionsOpen(true);
-
-
-      setSuggestions(mappedResults.slice(0, 5));
-      setSuggestionsOpen(true);
-    } catch (err) {
-      console.error("Search failed:", err);
-      setSuggestions([]);
-      setSuggestionsOpen(false);
-    }
-  };
-
-  const handleSelect = (hotel) => {
-    navigate(`/hotels/${hotel.id}`); //  now correct
-    setSearchTerm("");
-    setSuggestions([]);
-    setSuggestionsOpen(false);
-  };
-
-  const handleSearchClick = () => {
-    if (searchTerm.trim()) {
-      navigate(`/search?q=${searchTerm}`);
-      setSearchTerm("");
-      setSuggestions([]);
-      setSuggestionsOpen(false);
-    }
-  };
+  const navLinks = [
+    { name: "Home", path: "/" },
+    { name: "Hotels", path: "/hotels" },
+    { name: "About", path: "/about" },
+  ];
 
   const handleLogout = () => {
-    // Clear all user-related data from localStorage
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     localStorage.removeItem("adminToken");
     localStorage.removeItem("userRole");
     localStorage.removeItem("userId");
-    
-    // Clear any cached data
     sessionStorage.clear();
-    
-    // Dispatch storage event for other tabs/windows
     window.dispatchEvent(new Event("storage"));
-    
-    // Navigate to login
     navigate("/login");
   };
 
   return (
-    <header className="bg-white px-5 py-4 shadow-sm">
-      <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
-
-        {/* Logo */}
-        <Link to="/" className="font-bold text-xl flex gap-1 items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-            strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-            <path strokeLinecap="round" strokeLinejoin="round"
-              d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" />
-          </svg>
-          MyHotels
-        </Link>
-
-        {/* Search */}
-        <div ref={searchRef} className="flex-1 max-w-xl relative flex gap-2">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={handleChange}
-            placeholder="Search hotels..."
-            className="border border-gray-300 rounded-md px-3 py-2 w-full focus:ring-1 focus:ring-blue-400"
-          />
-          <button
-            onClick={handleSearchClick}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-          >
-            Search
-          </button>
-
-          {suggestionsOpen && suggestions.length > 0 && (
-            <ul className="absolute z-50 top-full mt-1 w-full bg-white border rounded-md shadow-lg">
-              {suggestions.map((hotel) => (
-                <li
-                  key={hotel.id}
-                  onClick={() => handleSelect(hotel)}
-                  className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                >
-                  <img
-                    src={hotel.image}
-                    alt={hotel.name}
-                    className="w-10 h-10 rounded-md object-cover"
-                  />
-                  <span className="truncate">{hotel.name}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {/* Desktop Auth */}
-        <div className="hidden sm:flex items-center gap-4">
-          {user ? (
-            <>
-              <Link to="/profile" className="border border-blue-600 text-blue-600 px-4 py-1 rounded-md hover:bg-blue-50 inline-block">
-                Profile & Booking History
-              </Link>
-
-              <button
-                onClick={handleLogout}
-                className="bg-blue-600 text-white px-4 py-1 rounded-md hover:bg-blue-700"
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <Link to="/login">
-                <button className="border border-blue-600 text-blue-600 px-4 py-1 rounded-md hover:bg-blue-50">
-                  Login
-                </button>
-              </Link>
-              <Link to="/register">
-                <button className="bg-blue-600 text-white px-4 py-1 rounded-md hover:bg-blue-700">
-                  Register
-                </button>
-              </Link>
-            </>
-          )}
-        </div>
-
-        {/* Mobile Profile */}
-        <div className="sm:hidden relative">
-          <button onClick={() => setProfileOpen(!profileOpen)}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-              fill="currentColor" className="w-6 h-6">
-              <path fillRule="evenodd"
-                d="M7.5 6a4.5 4.5 0 1 1 9 0a4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0"
-                clipRule="evenodd" />
-            </svg>
-          </button>
-
-          {profileOpen && (
-            <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg">
-              <ul className="text-center">
-                {user ? (
-                  <>
-                    <Link to="/profile" className="border border-blue-600 text-blue-600 px-4 py-1 rounded-md hover:bg-blue-50 inline-block">
-                      Profile & Booking History
-                    </Link>
-
-                    <li
-                      onClick={handleLogout}
-                      className="py-2 text-red-500 hover:bg-gray-100 cursor-pointer"
-                    >
-                      Logout
-                    </li>
-                  </>
-                ) : (
-                  <>
-                    <Link to="/login">
-                      <li className="py-2 hover:bg-gray-100">Login</li>
-                    </Link>
-                    <Link to="/register">
-                      <li className="py-2 hover:bg-gray-100">Register</li>
-                    </Link>
-                  </>
-                )}
-              </ul>
+    <nav
+      className={cn(
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
+        isScrolled
+          ? "bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl shadow-lg border-b border-gray-200 dark:border-slate-800"
+          : "bg-white/30 dark:bg-slate-950/30 backdrop-blur-md"
+      )}
+    >
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-20">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
+              <div className="relative bg-gradient-to-r from-blue-500 to-cyan-500 p-2.5 rounded-xl">
+                <Hotel className="h-6 w-6 text-white" />
+              </div>
             </div>
-          )}
-        </div>
+            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+              MyHotels
+            </span>
+          </Link>
 
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-8">
+            {navLinks.map((link) => (
+              <Link
+                key={link.name}
+                to={link.path}
+                className={cn(
+                  "relative text-sm font-medium transition-colors duration-300 hover:text-blue-600",
+                  location.pathname === link.path
+                    ? "text-blue-600"
+                    : "text-gray-600 dark:text-gray-400"
+                )}
+              >
+                {link.name}
+                {location.pathname === link.path && (
+                  <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full" />
+                )}
+              </Link>
+            ))}
+          </div>
+
+          {/* Desktop Auth Buttons */}
+          <div className="hidden md:flex items-center gap-3">
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="relative p-2.5 rounded-xl transition-all duration-300 hover:scale-110 hover:bg-blue-500/10 group"
+              aria-label="Toggle theme"
+            >
+              <Sun
+                className={cn(
+                  "h-5 w-5 transition-all duration-500 absolute",
+                  theme === "dark"
+                    ? "rotate-0 scale-100 opacity-100"
+                    : "rotate-90 scale-0 opacity-0"
+                )}
+              />
+              <Moon
+                className={cn(
+                  "h-5 w-5 transition-all duration-500",
+                  theme === "light"
+                    ? "rotate-0 scale-100 opacity-100"
+                    : "-rotate-90 scale-0 opacity-0"
+                )}
+              />
+            </button>
+
+            {user ? (
+              <>
+                <Link to="/profile">
+                  <button className="border-2 border-blue-600 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-all hover:scale-105">
+                    Profile
+                  </button>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all hover:scale-105"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login">
+                  <button className="border-2 border-blue-600 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-all hover:scale-105">
+                    Log in
+                  </button>
+                </Link>
+                <Link to="/register">
+                  <button className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-2 rounded-lg hover:shadow-lg hover:shadow-blue-500/50 transition-all hover:scale-105">
+                    Sign up
+                  </button>
+                </Link>
+              </>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-800 transition-colors"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
+          </button>
+        </div>
       </div>
-    </header>
+
+      {/* Mobile Menu */}
+      <div
+        className={cn(
+          "md:hidden absolute top-full left-0 right-0 overflow-hidden transition-all duration-300",
+          isMobileMenuOpen
+            ? "max-h-96 border-b border-gray-200 dark:border-slate-800 bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl"
+            : "max-h-0"
+        )}
+      >
+        <div className="container mx-auto px-4 py-4 space-y-4">
+          {navLinks.map((link, index) => (
+            <Link
+              key={link.name}
+              to={link.path}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={cn(
+                "block py-2 text-sm font-medium transition-colors",
+                location.pathname === link.path
+                  ? "text-blue-600"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              )}
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              {link.name}
+            </Link>
+          ))}
+
+          <div className="pt-4 border-t border-gray-200 dark:border-slate-800 flex flex-col gap-3">
+            {/* Mobile Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2.5 rounded-xl transition-all duration-300 hover:bg-blue-500/10 w-full text-left flex items-center gap-2"
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? (
+                <>
+                  <Sun className="h-5 w-5" /> Light Mode
+                </>
+              ) : (
+                <>
+                  <Moon className="h-5 w-5" /> Dark Mode
+                </>
+              )}
+            </button>
+
+            {user ? (
+              <>
+                <Link
+                  to="/profile"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <button className="w-full border-2 border-blue-600 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-all">
+                    Profile
+                  </button>
+                </Link>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <button className="w-full border-2 border-blue-600 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-all">
+                    Log in
+                  </button>
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <button className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-2 rounded-lg hover:shadow-lg hover:shadow-blue-500/50 transition-all">
+                    Sign up
+                  </button>
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </nav>
   );
 };
 
